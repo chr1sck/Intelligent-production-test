@@ -12,7 +12,7 @@ spring:
 #        max-active: 8
 #        max-wait: -1
   datasource:
-    url:  jdbc:mysql://106.15.109.152:3306/ic2?characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true
+    url:  jdbc:mysql://106.15.109.152:3306/bsd_asy?characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true
     username: root
     password: Bsd@2019
     driver-class-name: com.mysql.jdbc.Driver
