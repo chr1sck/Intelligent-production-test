@@ -1,0 +1,45 @@
+# springboot整合postgres连接配制
+spring:
+#  redis:
+#    database: 2
+#    host: 10.10.1.176
+#    port: 6379
+#    password: ribo@2016
+#    jedis:
+#      pool:
+#        max-idle: 8
+#        min-idle: 0
+#        max-active: 8
+#        max-wait: -1
+  datasource:
+    url:  jdbc:mysql://106.15.109.152:3306/ic2?characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true
+    username: root
+    password: Bsd@2019
+    driver-class-name: com.mysql.jdbc.Driver
+  #解决整合后报的一个错：<aused by: java.sql.SQLFeatureNotSupportedException: 这个 org.postgresql.jdbc.PgConnection.createClob() 方法尚未被实作。>
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+#mybatis-plus整合，加了表前缀的全局配制，加了类中与表中驼峰的映射，不加会查不出数据，因无法做表与类字段映射
+mybatis-plus:
+  global-config:
+    db-config:
+      table-prefix: template.
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.oceanspot.template.entities
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.oceanspot.template.mapper: debug
+
+server:
+  port: 8082
+### 上传文件路径
+#upload:
+#  excel:
+#    path: /Users/yaoyao.zhu/Documents/
