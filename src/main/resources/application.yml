@@ -29,13 +29,13 @@ mybatis-plus:
     db-config:
       table-prefix: template.
   mapper-locations: classpath*:mapper/*Mapper.xml
-  type-aliases-package: com.oceanspot.template.entities
+  type-aliases-package: com.bsd.say.entities
   configuration:
     map-underscore-to-camel-case: true
 
 logging:
   level:
-    com.oceanspot.template.mapper: debug
+    com.bsd.say.mapper: debug
 
 server:
   port: 8082
