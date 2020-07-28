@@ -9,11 +9,8 @@ public class LoveLetter extends BaseEntity{
     /**
      * 用户id(谁写的爱意情书)
      */
-    private String userId;
-    /**
-     * 情书内容(有字数限制)
-     */
-    private String content;
+    private Integer userId;
+
     /**
      * 情书类型
      */
@@ -26,4 +23,8 @@ public class LoveLetter extends BaseEntity{
      * 接收人姓名
      */
     private String receiveName;
+    /**
+     * 落款人
+     */
+    private String senderName;
 }

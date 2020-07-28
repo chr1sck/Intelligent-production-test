@@ -44,11 +44,9 @@ public abstract class BaseServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
         Long id = entity.getId();
         if (id == null) {
 
-            entity.setCreateBy(operatorId);
             entity.setCreateDateTime(date);
             entity.setState(Constants.ENABLE);
         }
-        entity.setUpdateBy(operatorId);
         entity.setUpdateDateTime(date);
         return super.saveOrUpdate((T) entity);
     }
