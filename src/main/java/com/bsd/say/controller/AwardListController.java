@@ -8,11 +8,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("award-list")
 public class AwardListController extends BaseController<AwardListService, AwardList>{
+    @Resource
+    private AwardListService awardListService;
     @Override
     public AwardListService getBaseService() {
         return super.getBaseService();
@@ -30,6 +33,20 @@ public class AwardListController extends BaseController<AwardListService, AwardL
         final AjaxResult page1 = super.page(ajaxRequest);
         AjaxResult ajaxResult = page1;
         System.out.println(ajaxResult);
+        return ajaxResult;
+    }
+
+    @RequestMapping("award")
+    public AjaxResult award(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = awardListService.award(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
         return ajaxResult;
     }
 }

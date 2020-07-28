@@ -3,9 +3,9 @@ package com.bsd.say.entities;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-@TableName("user")
+@TableName("users")
 @Data
-public class User extends BaseEntity{
+public class Users extends BaseEntity{
     /**
      * 用户手机号
      */

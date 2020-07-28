@@ -29,5 +29,5 @@ public class BaseEntity {
             timezone = "GMT+8"
     )
     private Date updateDateTime;
-    private int state;
+    private int state = 1;
 }

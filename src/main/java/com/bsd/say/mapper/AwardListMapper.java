@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository("awardListMapper")
 public interface AwardListMapper extends BaseMapper<AwardList> {
+    AwardList selectByMaxId();
 }

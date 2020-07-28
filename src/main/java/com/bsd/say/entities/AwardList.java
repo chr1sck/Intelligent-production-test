@@ -22,6 +22,16 @@ public class AwardList extends BaseEntity{
     private String awardName;
 
     /**
+     * 奖品地址
+     */
+    private String awardUrl;
+
+    /**
+     * 抽奖排名
+     */
+    private Integer awardNumber;
+
+    /**
      * 省
      */
     private String province;
