@@ -27,4 +27,8 @@ public class LoveLetter extends BaseEntity{
      * 落款人
      */
     private String senderName;
+    /**
+     * 渠道来源
+     */
+    private String source;
 }

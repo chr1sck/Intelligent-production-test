@@ -54,11 +54,6 @@ public abstract class BaseServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
 
     public IPage<T> page(JSONObject data) {
 
-
-        //TODO: 注入用户信息
-        Subject subject = SecurityUtils.getSubject();
-        System.out.println("subject" + subject);
-
         long current = data.getLong("current");
         long size = data.getLong("pageSize");
         String sort = data.getString("sort");
