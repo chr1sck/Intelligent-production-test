@@ -7,5 +7,4 @@ import com.bsd.say.entities.Users;
 public interface UsersService extends BaseService<Users>{
     AjaxResult sendNote(AjaxRequest ajaxRequest);
 
-    AjaxResult confirmNote(AjaxRequest ajaxRequest);
 }

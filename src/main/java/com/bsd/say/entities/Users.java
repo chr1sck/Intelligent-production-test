@@ -18,4 +18,8 @@ public class Users extends BaseEntity{
      * 0-白嫖客 1-寄信人 2-被送信人 3-既是寄信也是被送
      */
     private int userType;
+    /**
+     * 用户unionId （微信来源）
+     */
+    private String unionId;
 }

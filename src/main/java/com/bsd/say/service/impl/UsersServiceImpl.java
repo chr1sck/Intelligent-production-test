@@ -82,39 +82,4 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
         }
     }
 
-    /**
-     * 校验验证码
-     * @param ajaxRequest
-     * @return
-     */
-    @Override
-    public AjaxResult confirmNote(AjaxRequest ajaxRequest) {
-//        AjaxResult ajaxResult = new AjaxResult();
-//        JSONObject data = ajaxRequest.getData();
-//        if (data == null){
-//            ajaxResult.setRetmsg("DATA MISSING");
-//            ajaxResult.setRetcode(AjaxResult.FAILED);
-//            return ajaxResult;
-//        }else {
-//            String phone = data.getString("phone");
-//            String code = data.getString("code");
-//            if (StringUtils.isEmpty(phone)||StringUtils.isEmpty(code)){
-//                ajaxResult.setRetcode(AjaxResult.FAILED);
-//                ajaxResult.setRetmsg("PHONE OR CODE MISSING");
-//                return ajaxResult;
-//            }else {
-//                if (code.equals(redisTemplate.opsForValue().get(phone))){
-//                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
-//                    ajaxResult.setRetmsg("SUCCESS");
-//                }else {
-//                    ajaxResult.setRetcode(AjaxResult.FAILED);
-//                    ajaxResult.setRetmsg("ERROR CODE");
-//                }
-//                return ajaxResult;
-//            }
-//        }
-        return null;
-    }
-
-
 }

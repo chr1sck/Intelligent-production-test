@@ -31,4 +31,13 @@ public class LoveLetter extends BaseEntity{
      * 渠道来源
      */
     private String source;
+    /**
+     * 信自定义内容
+     */
+    private String content;
+
+    /**
+     * 信的唯一Id
+     */
+    private String letterId;
 }
