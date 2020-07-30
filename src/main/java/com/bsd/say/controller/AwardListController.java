@@ -6,6 +6,7 @@ import com.bsd.say.entities.AwardList;
 import com.bsd.say.service.AwardListService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -33,6 +34,24 @@ public class AwardListController extends BaseController<AwardListService, AwardL
         final AjaxResult page1 = super.page(ajaxRequest);
         AjaxResult ajaxResult = page1;
         System.out.println(ajaxResult);
+        return ajaxResult;
+    }
+
+    /**
+     * 看有没有领取过优惠券
+     */
+    @RequestMapping(value = "/is-award")
+    @ResponseBody
+    public AjaxResult isAward(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = awardListService.isAward(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
         return ajaxResult;
     }
 

@@ -24,6 +24,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @Service("couponService")
 @Transactional
@@ -173,9 +174,17 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                 ajaxResult.setData(true);
             }else {
                 //老会员
-                Coupon coupon = couponMapper.selectOne(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                if (users.getUserType() == 2){
+                    //既是寄件人又是收信人
+                    users.setUserType(3);
+                    usersMapper.updateById(users);
+                }else if (users.getUserType() == 0){
+                    users.setUserType(1);
+                    usersMapper.updateById(users);
+                }
+                List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
                         .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
-                if (coupon == null){
+                if (coupons.size() == 0 || coupons == null){
                     ajaxResult.setRetmsg("可以领取优惠券");
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
                     ajaxResult.setData(true);
