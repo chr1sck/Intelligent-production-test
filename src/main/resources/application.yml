@@ -43,6 +43,14 @@ server:
 award:
   rule: 5
 
+wechat:
+  appId:
+  componentAppId:
+  componentAppSecret:
+  getComponentAccessTokenUrl: https://api.weixin.qq.com/cgi-bin/component/api_component_token
+  getAccessTokenUrl: https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=
+  getUnionIdUrl: https://api.weixin.qq.com/sns/userinfo?access_token=
+
 bsd:
   tokenkey: BOSIDENG
   sendSource: BRAND_VERIFY_CODE
