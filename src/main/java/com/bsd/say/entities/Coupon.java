@@ -19,5 +19,10 @@ public class Coupon extends BaseEntity{
     /**
      * 绑定的userId
      */
-    private Integer userId;
+    private Long userId;
+
+    /**
+     * 领券人名
+     */
+    private String receiverName;
 }

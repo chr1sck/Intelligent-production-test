@@ -1,16 +1,16 @@
 # springboot整合postgres连接配制
 spring:
-#  redis:
-#    database: 2
-#    host: 10.10.1.176
-#    port: 6379
-#    password: ribo@2016
-#    jedis:
-#      pool:
-#        max-idle: 8
-#        min-idle: 0
-#        max-active: 8
-#        max-wait: -1
+  redis:
+    database: 4
+    host: 10.10.1.176
+    port: 6379
+    password: ribo@2016
+    jedis:
+      pool:
+        max-idle: 8
+        min-idle: 0
+        max-active: 8
+        max-wait: -1
   datasource:
     url:  jdbc:mysql://106.15.109.152:3306/bsd_asy?characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true
     username: root
@@ -42,6 +42,12 @@ server:
 
 award:
   rule: 5
+
+bsd:
+  tokenkey: BOSIDENG
+  sendSource: BRAND_VERIFY_CODE
+  verifySMSCodeUrl: http://vtest.bsd.cn/BSD_WXAPP/sysWeChat/verifySMSCode?token=
+  addCouponUrl: http://vtest.bsd.cn/BSD_WXAPP/miniProgram/addCoupon?token=
 ### 上传文件路径
 #upload:
 #  excel:
