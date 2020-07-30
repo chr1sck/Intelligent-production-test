@@ -67,7 +67,6 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             String receiverName = data.getString("receiverName");
             Boolean isAward = data.getBoolean("isAward");
             String code = data.getString("data");
-//            Integer letterId = data.getInteger("letterId");
             if (isAward){
                 //如果是抽奖领券,微信code为必填
                 if (StringUtils.isBlank(code)){
@@ -95,7 +94,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             Coupon coupon = new Coupon();
                             Users users;
                             if (isAward){
-                                String unionId = "";
+                                String unionId = "123";
                                 users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                 users.setPhone(phone);

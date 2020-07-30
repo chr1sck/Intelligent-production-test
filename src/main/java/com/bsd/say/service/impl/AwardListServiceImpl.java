@@ -55,7 +55,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     ajaxResult.setRetmsg("CODE MISSING");
                     return ajaxResult;
                 } else {
-                    String unionId = "";
+                    String unionId = "123";
                     Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                     AwardList maxIdAward = awardListMapper.selectByMaxId();
@@ -103,7 +103,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("CODE MISSING");
                 return ajaxResult;
             } else {
-                String unionId = "";
+                String unionId = "123";
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
