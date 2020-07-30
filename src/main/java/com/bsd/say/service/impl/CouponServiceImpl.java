@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.Coupon;
+import com.bsd.say.entities.LoveLetter;
 import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.CouponMapper;
+import com.bsd.say.mapper.LoveLetterMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.CouponService;
 import com.bsd.say.util.HttpRequestUtils;
@@ -34,7 +36,9 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     @Resource
     private UsersMapper usersMapper;
     @Autowired
-    protected CouponMapper couponMapper;
+    private CouponMapper couponMapper;
+    @Resource
+    private LoveLetterMapper loveLetterMapper;
     @Resource
     private RedisTemplate redisTemplate;
     @Override
@@ -60,6 +64,16 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             String phone = data.getString("phone");
             String code = data.getString("code");
             String receiverName = data.getString("receiverName");
+            Boolean isAward = data.getBoolean("isAward");
+            Integer letterId = data.getInteger("letterId");
+            if (!isAward){
+                //如果是false，情书id为必填
+                if (letterId == null){
+                    ajaxResult.setRetmsg("LETTERID MISSING");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }
+            }
             if (StringUtils.isEmpty(phone)||StringUtils.isEmpty(code)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("PHONE OR CODE MISSING");
@@ -79,7 +93,36 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             Coupon coupon = new Coupon();
                             Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                     .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                            coupon.setUserId(users.getId());
+                            if (users == null){
+                                //新会员直接创
+                                Users newUsers = new Users();
+                                newUsers.setPhone(phone);
+                                newUsers.setCreateDateTime(new Date());
+                                newUsers.setUpdateDateTime(new Date());
+                                if (isAward){
+                                    newUsers.setUserType(2);
+                                }else {
+                                    newUsers.setUserType(1);
+                                }
+                                usersMapper.insert(newUsers);
+                                coupon.setUserId(newUsers.getId());
+                                if (!isAward){
+                                    //新用户绑定情书
+                                    LoveLetter loveLetter = loveLetterMapper.selectById(letterId);
+                                    loveLetter.setUserId(newUsers.getId());
+                                    loveLetterMapper.updateById(loveLetter);
+                                }
+                            }else {
+                                coupon.setUserId(users.getId());
+                                if (!isAward){
+                                    //老用户绑定情书
+                                    LoveLetter loveLetter = loveLetterMapper.selectById(letterId);
+                                    loveLetter.setUserId(users.getId());
+                                    loveLetterMapper.updateById(loveLetter);
+                                }
+                            }
+                            coupon.setCreateDateTime(new Date());
+                            coupon.setUpdateDateTime(new Date());
                             coupon.setReceiverName(receiverName);
                             couponMapper.insert(coupon);
                             ajaxResult.setRetmsg("SUCCESS");
@@ -98,5 +141,51 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                 return ajaxResult;
             }
         }
+    }
+
+    /**
+     * 有没有领取过优惠券
+     * @param ajaxRequest
+     * @return
+     */
+    @Override
+    public AjaxResult isReceiveCoupon(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetmsg("DATA MISSING");
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            return ajaxResult;
+        }else {
+            String phone = data.getString("phone");
+            Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+            if (users == null){
+                //新会员直接创，肯定没领取过券
+                Users newUsers = new Users();
+                newUsers.setPhone(phone);
+                newUsers.setUserType(1);
+                newUsers.setCreateDateTime(new Date());
+                newUsers.setUpdateDateTime(new Date());
+                usersMapper.insert(newUsers);
+                ajaxResult.setRetmsg("可以领取优惠券");
+                ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                ajaxResult.setData(true);
+            }else {
+                //老会员
+                Coupon coupon = couponMapper.selectOne(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                        .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                if (coupon == null){
+                    ajaxResult.setRetmsg("可以领取优惠券");
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                    ajaxResult.setData(true);
+                }else {
+                    ajaxResult.setRetmsg("已经领过");
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                    ajaxResult.setData(false);
+                }
+            }
+        }
+        return ajaxResult;
     }
 }

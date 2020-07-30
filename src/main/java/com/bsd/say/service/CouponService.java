@@ -6,4 +6,6 @@ import com.bsd.say.entities.Coupon;
 
 public interface CouponService extends BaseService<Coupon> {
     AjaxResult receiveCoupon(AjaxRequest ajaxRequest);
+
+    AjaxResult isReceiveCoupon(AjaxRequest ajaxRequest);
 }
