@@ -66,7 +66,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             String noteCode = data.getString("noteCode");
             String receiverName = data.getString("receiverName");
             Boolean isAward = data.getBoolean("isAward");
-            String code = data.getString("data");
+            String code = data.getString("code");
             if (isAward){
                 //如果是抽奖领券,微信code为必填
                 if (StringUtils.isBlank(code)){
