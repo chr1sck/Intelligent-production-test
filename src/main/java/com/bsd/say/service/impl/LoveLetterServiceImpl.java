@@ -59,6 +59,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 String letterId = RandomUtils.random(6) + String.valueOf(new Date().getTime());
                 loveLetter.setLetterId(letterId);
                 loveLetter.setContent(content);
+                loveLetter.setSenderName(sender_name);
                 if (love_type!=null){
                     loveLetter.setLoveType(love_type);
                 }

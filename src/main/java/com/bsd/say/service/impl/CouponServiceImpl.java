@@ -141,6 +141,11 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             return ajaxResult;
         }else {
             String phone = data.getString("phone");
+            if (StringUtils.isBlank(phone)){
+                ajaxResult.setRetmsg("PHONE MISSING");
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                return ajaxResult;
+            }
             Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                     .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
             if (users == null){
