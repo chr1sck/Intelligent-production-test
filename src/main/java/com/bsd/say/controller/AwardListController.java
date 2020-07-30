@@ -4,16 +4,14 @@ import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.AwardList;
 import com.bsd.say.service.AwardListService;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("award-list")
+@CrossOrigin
 public class AwardListController extends BaseController<AwardListService, AwardList>{
     @Resource
     private AwardListService awardListService;
@@ -38,7 +36,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
     }
 
     /**
-     * 看有没有领取过奖品
+     * 是否有资格进行抽奖
      */
     @RequestMapping(value = "/is-valid-lottery")
     @ResponseBody

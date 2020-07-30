@@ -4,6 +4,7 @@ import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.LoveType;
 import com.bsd.say.service.LoveTypeService;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("love-type")
+@CrossOrigin
 public class LoveTypeController extends BaseController<LoveTypeService, LoveType>{
     @Resource
     private LoveTypeService loveTypeService;
