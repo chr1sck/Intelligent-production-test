@@ -12,6 +12,7 @@ import com.bsd.say.service.AwardListService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     private UsersMapper usersMapper;
     @Autowired
     protected AwardListMapper awardListMapper;
+    @Resource
+    private RedisTemplate redisTemplate;
 
     @Override
     public AwardListMapper getBaseMapper() {
@@ -144,4 +147,67 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
         }
         return ajaxResult;
     }
+
+    /**
+     * 一等奖填写地址信息 (校验验证码)
+     * @param ajaxRequest
+     * @return
+     */
+    @Override
+    public AjaxResult saveAward(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg("DATA MISSING");
+            return ajaxResult;
+        }else{
+            String code = data.getString("code");
+            String phone = data.getString("phone");
+            String noteCode = data.getString("noteCode");
+            String address = data.getString("adress");
+            if (StringUtils.isBlank(code)||StringUtils.isBlank(phone)
+                    ||StringUtils.isBlank(noteCode)){
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                ajaxResult.setRetmsg("PARAM MISSING");
+                return ajaxResult;
+            }else {
+                if (noteCode.equals(redisTemplate.opsForValue().get(phone))){
+                    //验证成功
+                    String unionId = "123";
+                    Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                            .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                    if (users == null){
+                        ajaxResult.setRetcode(AjaxResult.FAILED);
+                        ajaxResult.setRetmsg("NOT FOUND USERS");
+                        return ajaxResult;
+                    }
+                    AwardList awardList = awardListMapper.selectOne(Wrappers.<AwardList>lambdaQuery().eq(AwardList::getUserId,users.getId())
+                            .and(queryWrapper1 -> queryWrapper1.eq(AwardList::getState,1)));
+                    if (awardList == null){
+                        ajaxResult.setRetcode(AjaxResult.FAILED);
+                        ajaxResult.setRetmsg("NOT FOUND AWARD");
+                        return ajaxResult;
+                    }
+                    if (StringUtils.isBlank(address)){
+                        ajaxResult.setRetcode(AjaxResult.FAILED);
+                        ajaxResult.setRetmsg("ADDRESS MISSING");
+                        return ajaxResult;
+                    }
+                    awardList.setAddress(address);
+                    awardList.setPhone(phone);
+                    awardListMapper.updateById(awardList);
+                    ajaxResult.setRetmsg("SUCCESS");
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                }else {
+                    //短信验证失败
+                    ajaxResult.setRetmsg("FAIL");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    ajaxResult.setRetmsg("TIME OUT OR ERROR");
+                }
+            }
+        }
+        return ajaxResult;
+    }
+
 }

@@ -68,4 +68,22 @@ public class AwardListController extends BaseController<AwardListService, AwardL
         }
         return ajaxResult;
     }
+
+    /**
+     * 保存一等奖信息
+     */
+    @RequestMapping(value = "/save-award")
+    @ResponseBody
+    public AjaxResult saveAward(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = awardListService.saveAward(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
+        return ajaxResult;
+    }
 }

@@ -8,4 +8,6 @@ public interface AwardListService extends BaseService<AwardList>{
     AjaxResult award(AjaxRequest ajaxRequest);
 
     AjaxResult isAward(AjaxRequest ajaxRequest);
+
+    AjaxResult saveAward(AjaxRequest ajaxRequest);
 }

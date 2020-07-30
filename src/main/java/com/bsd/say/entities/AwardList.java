@@ -32,22 +32,12 @@ public class AwardList extends BaseEntity{
     private Integer awardNumber;
 
     /**
-     * 省
-     */
-    private String province;
-
-    /**
-     * 市
-     */
-    private String city;
-
-    /**
-     * 区
-     */
-    private String area;
-
-    /**
-     * 详细地藏
+     * 详细地址
      */
     private String address;
+
+    /**
+     * 手机号
+     */
+    private String phone;
 }
