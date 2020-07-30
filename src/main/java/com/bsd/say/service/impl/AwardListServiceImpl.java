@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.AwardList;
+import com.bsd.say.entities.Coupon;
 import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.AwardListMapper;
+import com.bsd.say.mapper.CouponMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.AwardListService;
+import com.bsd.say.service.CouponService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +34,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     protected AwardListMapper awardListMapper;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private CouponMapper couponMapper;
 
     @Override
     public AwardListMapper getBaseMapper() {
@@ -165,9 +170,10 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             String code = data.getString("code");
             String phone = data.getString("phone");
             String noteCode = data.getString("noteCode");
-            String address = data.getString("adress");
+            String address = data.getString("address");
+            String receiverName = data.getString("receiverName");
             if (StringUtils.isBlank(code)||StringUtils.isBlank(phone)
-                    ||StringUtils.isBlank(noteCode)){
+                    ||StringUtils.isBlank(noteCode)||StringUtils.isBlank(receiverName)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("PARAM MISSING");
                 return ajaxResult;
@@ -196,6 +202,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     }
                     awardList.setAddress(address);
                     awardList.setPhone(phone);
+                    awardList.setReceiverName(receiverName);
                     awardListMapper.updateById(awardList);
                     ajaxResult.setRetmsg("SUCCESS");
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
@@ -204,6 +211,62 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     ajaxResult.setRetmsg("FAIL");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     ajaxResult.setRetmsg("TIME OUT OR ERROR");
+                }
+            }
+        }
+        return ajaxResult;
+    }
+
+    /**
+     * 通过code获取优惠券和抽奖
+     * @param ajaxRequest
+     * @return
+     */
+    @Override
+    public AjaxResult getAwardList(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg("DATA MISSING");
+            return ajaxResult;
+        }else{
+            String code = data.getString("code");
+            if (StringUtils.isBlank(code)){
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                ajaxResult.setRetmsg("CODE MISSING");
+                return ajaxResult;
+            }else {
+                String unionId = "123";
+                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                if (users == null){
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    ajaxResult.setRetmsg("NOT FOUND USERS");
+                    return ajaxResult;
+                }else {
+                    Coupon coupon = couponMapper.selectOne(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                            .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                    AwardList awardList = awardListMapper.selectOne(Wrappers.<AwardList>lambdaQuery().eq(AwardList::getUserId,users.getId())
+                            .and(queryWrapper1 -> queryWrapper1.eq(AwardList::getState,1)));
+                    JSONObject result = new JSONObject();
+                    if (coupon != null){
+                        String jsonString = JSONObject.toJSONString(coupon);
+                        JSONObject jsonObject = JSONObject.parseObject(jsonString);
+                        result.put("coupon",jsonObject);
+                    }else {
+                        result.put("coupon",new JSONObject());
+                    }
+                    if (awardList != null){
+                        String jsonString = JSONObject.toJSONString(awardList);
+                        JSONObject jsonObject = JSONObject.parseObject(jsonString);
+                        result.put("awardList",jsonObject);
+                    }else {
+                        result.put("awardList",new JSONObject());
+                    }
+                    ajaxResult.setRetmsg("SUCCESS");
+                    ajaxResult.setData(result);
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
                 }
             }
         }

@@ -84,4 +84,22 @@ public class AwardListController extends BaseController<AwardListService, AwardL
         }
         return ajaxResult;
     }
+
+    /**
+     * 获取自己的抽奖和优惠券
+     */
+    @RequestMapping(value = "/get-award-list")
+    @ResponseBody
+    public AjaxResult getAwardList(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = awardListService.getAwardList(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
+        return ajaxResult;
+    }
 }

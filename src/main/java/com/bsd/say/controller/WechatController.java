@@ -1,6 +1,6 @@
 package com.bsd.say.controller;
 
-import org.apache.tomcat.util.http.ResponseUtil;
+import com.bsd.say.util.ResponseUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,7 +34,8 @@ public class WechatController {
 //        logger.info("msgSignature: " + msgSignature);
 //        logger.info("postData: " + postData);
 //        thirdPartyService.getComponentVerifyTicket(timestamp, nonce, msgSignature, postData);
-//        responseUtil(response, "success");
+        ResponseUtil.doResponse(response, "success");
 //    return "success";
     }
+
 }

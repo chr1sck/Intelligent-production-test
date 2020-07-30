@@ -10,4 +10,6 @@ public interface AwardListService extends BaseService<AwardList>{
     AjaxResult isValidLottery(AjaxRequest ajaxRequest);
 
     AjaxResult saveAward(AjaxRequest ajaxRequest);
+
+    AjaxResult getAwardList(AjaxRequest ajaxRequest);
 }

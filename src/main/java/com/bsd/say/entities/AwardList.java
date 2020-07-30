@@ -40,4 +40,9 @@ public class AwardList extends BaseEntity{
      * 手机号
      */
     private String phone;
+
+    /**
+     * 收奖人
+     */
+    private String receiverName;
 }
