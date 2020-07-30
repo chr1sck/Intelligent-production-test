@@ -1,6 +1,7 @@
 package com.bsd.say.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.LoveLetter;
@@ -71,6 +72,42 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
         }
         ajaxResult.setRetcode(AjaxResult.SUCCESS);
         ajaxResult.setRetmsg("SUCCESS");
+        return ajaxResult;
+    }
+
+    /**
+     * 查看情书
+     * @param ajaxRequest
+     * @return
+     */
+    @Override
+    public AjaxResult getLoveLetter(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetmsg("DATA MISSING");
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            return ajaxResult;
+        }else{
+            String letterId = data.getString("letterId");
+            if (StringUtils.isBlank(letterId)){
+                ajaxResult.setRetmsg("LETTERID MISSING");
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                return ajaxResult;
+            }else {
+                LoveLetter loveLetter = loveLetterMapper.selectOne(Wrappers.<LoveLetter>lambdaQuery().eq(LoveLetter::getLetterId,letterId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(LoveLetter::getState,1)));
+                if (loveLetter == null){
+                    ajaxResult.setRetmsg("NOT FOUND");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    ajaxResult.setRetmsg("SUCCESS");
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                    ajaxResult.setData(loveLetter);
+                }
+            }
+        }
         return ajaxResult;
     }
 }

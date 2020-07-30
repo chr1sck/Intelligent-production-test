@@ -76,6 +76,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                         ajaxResult.setRetmsg("恭喜中二等奖，优惠券");
                     }
                     awardListMapper.insert(awardList);
+                    ajaxResult.setData(awardList);
                 }
             }
             ajaxResult.setRetcode(AjaxResult.SUCCESS);
