@@ -145,7 +145,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     }
 
     /**
-     * 有没有领取过优惠券
+     * 有没有领取过优惠券  领取优惠券手机号必传
      * @param ajaxRequest
      * @return
      */

@@ -9,7 +9,7 @@ public class AwardList extends BaseEntity{
     /**
      * 中奖用户id
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * 中奖类型(1-一等奖  2-二等奖)

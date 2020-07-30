@@ -49,16 +49,19 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("DATA MISSING");
                 return ajaxResult;
             }else {
-                Integer userId = data.getInteger("userId");
-                if (userId == null){
+                String code = data.getString("code");
+                if (StringUtils.isEmpty(code)){
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("USERID MISSING");
+                    ajaxResult.setRetmsg("CODE MISSING");
                     return ajaxResult;
-                }else {
+                } else {
+                    String unionId = "";
+                    Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                            .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                     AwardList maxIdAward = awardListMapper.selectByMaxId();
                     Integer newAwardNumner = maxIdAward.getAwardNumber()+ 1;
                     AwardList awardList = new AwardList();
-                    awardList.setUserId(userId);
+                    awardList.setUserId(users.getId());
                     awardList.setAwardNumber(newAwardNumner);
                     awardList.setCreateDateTime(new Date());
                     awardList.setUpdateDateTime(new Date());
@@ -81,7 +84,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     }
 
     /**
-     * 判断有没有抽过奖品
+     * 判断有没有抽过奖品 微信code必传
      * @param ajaxRequest
      * @return
      */
@@ -94,18 +97,19 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             ajaxResult.setRetmsg("DATA MISSING");
             return ajaxResult;
         }else {
-            String phone = data.getString("phone");
-            if (StringUtils.isEmpty(phone)){
+            String code = data.getString("code");
+            if (StringUtils.isEmpty(code)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
-                ajaxResult.setRetmsg("PHONE MISSING");
+                ajaxResult.setRetmsg("CODE MISSING");
                 return ajaxResult;
-            }else {
-                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+            } else {
+                String unionId = "";
+                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
                     //新会员直接创，肯定没抽过奖
                     Users newUsers = new Users();
-                    newUsers.setPhone(phone);
+                    newUsers.setUnionId(unionId);
                     newUsers.setUserType(2);
                     newUsers.setCreateDateTime(new Date());
                     newUsers.setUpdateDateTime(new Date());
