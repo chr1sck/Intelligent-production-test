@@ -38,7 +38,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
     }
 
     /**
-     * 看有没有领取过优惠券
+     * 看有没有领取过奖品
      */
     @RequestMapping(value = "/is-award")
     @ResponseBody
