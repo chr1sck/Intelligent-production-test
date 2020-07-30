@@ -31,7 +31,7 @@ public class LoveLetterController extends BaseController<LoveLetterService, Love
     }
 
     /**
-     * 看有没有领取过优惠券
+     * 生成情书
      */
     @RequestMapping(value = "/create-love-letter")
     @ResponseBody
@@ -40,6 +40,24 @@ public class LoveLetterController extends BaseController<LoveLetterService, Love
         AjaxResult ajaxResult = new AjaxResult();
         try {
             ajaxResult = loveLetterService.createLoveLetter(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
+        return ajaxResult;
+    }
+
+    /**
+     * 查看情书
+     */
+    @RequestMapping(value = "/get-love-letter")
+    @ResponseBody
+    public AjaxResult getLoveLetter(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = loveLetterService.getLoveLetter(ajaxRequest);
         } catch (Exception e) {
             e.printStackTrace();
             String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
