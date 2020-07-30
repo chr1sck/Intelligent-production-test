@@ -7,7 +7,7 @@ import com.bsd.say.entities.AwardList;
 public interface AwardListService extends BaseService<AwardList>{
     AjaxResult award(AjaxRequest ajaxRequest);
 
-    AjaxResult isAward(AjaxRequest ajaxRequest);
+    AjaxResult isValidLottery(AjaxRequest ajaxRequest);
 
     AjaxResult saveAward(AjaxRequest ajaxRequest);
 }

@@ -93,7 +93,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
      * @return
      */
     @Override
-    public AjaxResult isAward(AjaxRequest ajaxRequest) {
+    public AjaxResult isValidLottery(AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
         if (data == null){

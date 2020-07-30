@@ -40,12 +40,12 @@ public class AwardListController extends BaseController<AwardListService, AwardL
     /**
      * 看有没有领取过奖品
      */
-    @RequestMapping(value = "/is-award")
+    @RequestMapping(value = "/is-valid-lottery")
     @ResponseBody
-    public AjaxResult isAward(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult isValidLottery(@RequestBody AjaxRequest ajaxRequest){
         AjaxResult ajaxResult = new AjaxResult();
         try {
-            ajaxResult = awardListService.isAward(ajaxRequest);
+            ajaxResult = awardListService.isValidLottery(ajaxRequest);
         } catch (Exception e) {
             e.printStackTrace();
             String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
