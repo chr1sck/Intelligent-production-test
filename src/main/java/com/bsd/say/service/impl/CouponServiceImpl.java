@@ -63,24 +63,25 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             return ajaxResult;
         }else {
             String phone = data.getString("phone");
-            String code = data.getString("code");
+            String noteCode = data.getString("noteCode");
             String receiverName = data.getString("receiverName");
             Boolean isAward = data.getBoolean("isAward");
-            Integer letterId = data.getInteger("letterId");
-            if (!isAward){
-                //如果是false，情书id为必填
-                if (letterId == null){
-                    ajaxResult.setRetmsg("LETTERID MISSING");
+            String code = data.getString("data");
+//            Integer letterId = data.getInteger("letterId");
+            if (isAward){
+                //如果是抽奖领券,微信code为必填
+                if (StringUtils.isBlank(code)){
+                    ajaxResult.setRetmsg("CODE MISSING");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
                 }
             }
-            if (StringUtils.isEmpty(phone)||StringUtils.isEmpty(code)){
+            if (StringUtils.isEmpty(phone)||StringUtils.isEmpty(noteCode)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("PHONE OR CODE MISSING");
                 return ajaxResult;
             }else {
-                if (code.equals(redisTemplate.opsForValue().get(phone))){
+                if (noteCode.equals(redisTemplate.opsForValue().get(phone))){
                     String token = MD5Utils.md5(tokenkey+df.format(new Date()));
                     //验证成功，领券
                     JSONObject request = new JSONObject();
@@ -92,36 +93,18 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         JSONObject resultJson = JSONObject.parseObject(result);
                         if (resultJson.getBoolean("success")){
                             Coupon coupon = new Coupon();
-                            Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                            if (users == null){
-                                //新会员直接创
-                                Users newUsers = new Users();
-                                newUsers.setPhone(phone);
-                                newUsers.setCreateDateTime(new Date());
-                                newUsers.setUpdateDateTime(new Date());
-                                if (isAward){
-                                    newUsers.setUserType(2);
-                                }else {
-                                    newUsers.setUserType(1);
-                                }
-                                usersMapper.insert(newUsers);
-                                coupon.setUserId(newUsers.getId());
-                                if (!isAward){
-                                    //新用户绑定情书
-                                    LoveLetter loveLetter = loveLetterMapper.selectById(letterId);
-                                    loveLetter.setUserId(newUsers.getId());
-                                    loveLetterMapper.updateById(loveLetter);
-                                }
+                            Users users;
+                            if (isAward){
+                                String unionId = "";
+                                users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                users.setPhone(phone);
+                                usersMapper.insert(users);
                             }else {
-                                coupon.setUserId(users.getId());
-                                if (!isAward){
-                                    //老用户绑定情书
-                                    LoveLetter loveLetter = loveLetterMapper.selectById(letterId);
-                                    loveLetter.setUserId(users.getId());
-                                    loveLetterMapper.updateById(loveLetter);
-                                }
+                                users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                             }
+                            coupon.setUserId(users.getId());
                             coupon.setCreateDateTime(new Date());
                             coupon.setUpdateDateTime(new Date());
                             coupon.setReceiverName(receiverName);
@@ -137,7 +120,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                     }
                 }else {
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("ERROR CODE");
+                    ajaxResult.setRetmsg("ERROR NOTECODE");
                 }
                 return ajaxResult;
             }
