@@ -100,8 +100,17 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 users.setPhone(phone);
                                 usersMapper.insert(users);
                             }else {
-                                users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                if (StringUtils.isBlank(code)){
+                                    //来源H5
+                                    users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                                            .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                }else {
+                                    //来源微信
+                                    String unionId = "123";
+                                    users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                                            .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                }
+
                             }
                             coupon.setUserId(users.getId());
                             coupon.setCreateDateTime(new Date());
@@ -141,17 +150,38 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             return ajaxResult;
         }else {
             String phone = data.getString("phone");
-            if (StringUtils.isBlank(phone)){
-                ajaxResult.setRetmsg("PHONE MISSING");
+            String code = data.getString("code");
+            if (StringUtils.isBlank(phone)&&StringUtils.isBlank(code)){
+                ajaxResult.setRetmsg("PARAM MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
             }
-            Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+            Users users = new Users();
+            Boolean isWechat = true;
+            if (StringUtils.isNotEmpty(phone)){
+                //来源H5
+                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                isWechat = false;
+            }else if (StringUtils.isNotEmpty(code)){
+                //来源微信
+                String unionId = "123";
+                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+            }else {
+                ajaxResult.setRetmsg("PARAM ERROR");
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                return ajaxResult;
+            }
             if (users == null){
                 //新会员直接创，肯定没领取过券
                 Users newUsers = new Users();
-                newUsers.setPhone(phone);
+                if (isWechat){
+                    String unionId = "123";
+                    newUsers.setUnionId(unionId);
+                }else {
+                    newUsers.setPhone(phone);
+                }
                 newUsers.setUserType(1);
                 newUsers.setCreateDateTime(new Date());
                 newUsers.setUpdateDateTime(new Date());
