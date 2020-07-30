@@ -132,7 +132,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
      * @return
      */
     @Override
-    public AjaxResult isReceiveCoupon(AjaxRequest ajaxRequest) {
+    public AjaxResult isValidGetCoupon(AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
         if (data == null){

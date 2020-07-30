@@ -23,14 +23,14 @@ public class CouponController  extends BaseController<CouponService, Coupon>{
 
 
     /**
-     * 看有没有领取过优惠券
+     * 是否有资格领取优惠券
      */
-    @RequestMapping(value = "/is-receive-coupon")
+    @RequestMapping(value = "/is-valid-get-coupon")
     @ResponseBody
-    public AjaxResult isReceiveCoupon(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult isValidGetCoupon(@RequestBody AjaxRequest ajaxRequest){
         AjaxResult ajaxResult = new AjaxResult();
         try {
-            ajaxResult = couponService.isReceiveCoupon(ajaxRequest);
+            ajaxResult = couponService.isValidGetCoupon(ajaxRequest);
         } catch (Exception e) {
             e.printStackTrace();
             String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
