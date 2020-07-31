@@ -153,8 +153,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
         }else {
             String phone = data.getString("phone");
             String code = data.getString("code");
-            if (StringUtils.isBlank(phone)){
-                ajaxResult.setRetmsg("PHONE MISSING");
+            if (StringUtils.isBlank(phone)&&StringUtils.isEmpty(code)){
+                ajaxResult.setRetmsg("PARAM MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
             }
