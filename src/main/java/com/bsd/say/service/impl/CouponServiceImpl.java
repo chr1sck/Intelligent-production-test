@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
+import com.bsd.say.entities.AwardList;
 import com.bsd.say.entities.Coupon;
 import com.bsd.say.entities.LoveLetter;
 import com.bsd.say.entities.Users;
@@ -98,8 +99,10 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                 users.setPhone(phone);
-                                usersMapper.insert(users);
-                            }else {
+                                users.setUpdateDateTime(new Date());
+                                usersMapper.updateById(users);
+                            }
+                            else {
                                 if (StringUtils.isBlank(code)){
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
@@ -110,15 +113,14 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                 }
-
+                                coupon.setUserId(users.getId());
+                                coupon.setCreateDateTime(new Date());
+                                coupon.setUpdateDateTime(new Date());
+                                coupon.setReceiverName(receiverName);
+                                couponMapper.insert(coupon);
+                                ajaxResult.setRetmsg("SUCCESS");
+                                ajaxResult.setRetcode(AjaxResult.SUCCESS);
                             }
-                            coupon.setUserId(users.getId());
-                            coupon.setCreateDateTime(new Date());
-                            coupon.setUpdateDateTime(new Date());
-                            coupon.setReceiverName(receiverName);
-                            couponMapper.insert(coupon);
-                            ajaxResult.setRetmsg("SUCCESS");
-                            ajaxResult.setRetcode(AjaxResult.SUCCESS);
                         }else {
                             ajaxResult.setRetcode(AjaxResult.FAILED);
                             ajaxResult.setRetmsg(resultJson.getString("errorMessage"));
@@ -151,27 +153,21 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
         }else {
             String phone = data.getString("phone");
             String code = data.getString("code");
-            if (StringUtils.isBlank(phone)&&StringUtils.isBlank(code)){
-                ajaxResult.setRetmsg("PARAM MISSING");
+            if (StringUtils.isBlank(phone)){
+                ajaxResult.setRetmsg("PHONE MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
             }
-            Users users = new Users();
+            Users users ;
             Boolean isWechat = true;
-            if (StringUtils.isNotEmpty(phone)){
-                //来源H5
-                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                isWechat = false;
-            }else if (StringUtils.isNotEmpty(code)){
-                //来源微信
+            if (StringUtils.isNotEmpty(code)){
                 String unionId = "123";
                 users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
             }else {
-                ajaxResult.setRetmsg("PARAM ERROR");
-                ajaxResult.setRetcode(AjaxResult.FAILED);
-                return ajaxResult;
+                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                isWechat = false;
             }
             if (users == null){
                 //新会员直接创，肯定没领取过券
@@ -191,6 +187,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                 ajaxResult.setData(true);
             }else {
                 //老会员
+                users.setPhone(phone);
                 if (users.getUserType() == 2){
                     //既是寄件人又是收信人
                     users.setUserType(3);
