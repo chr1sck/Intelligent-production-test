@@ -44,8 +44,10 @@ award:
   rule: 5
 
 wechat:
+  aesKey: R5sudie7ydu76shduy7wjdyuksu7d8fjdnsyduehwysd
+  componentToken: bosidengqixi
   appId:
-  componentAppId:
+  componentAppId: wxcd29dc3be20cbfc7
   componentAppSecret:
   getComponentAccessTokenUrl: https://api.weixin.qq.com/cgi-bin/component/api_component_token
   getAccessTokenUrl: https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=

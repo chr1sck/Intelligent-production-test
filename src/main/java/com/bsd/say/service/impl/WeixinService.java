@@ -34,7 +34,7 @@ public class WeixinService {
      * 刷新第三方accessToken
      */
     public void refreshComponentAccessToken(){
-        Map<String, String> reMap;
+//        Map<String, String> reMap;
         try {
             // 核心定时器，每一个小时执行一次
             String ComponentVerifyTicket = redisTemplate.opsForValue().get("component_verify_ticket").toString();
@@ -49,6 +49,7 @@ public class WeixinService {
             if (StringUtils.isNotEmpty(componentAccessToken)) {
                 redisTemplate.opsForValue().set("component_access_token", componentAccessToken, 60 * 60 * 2, TimeUnit.SECONDS);
                 String accessToken = redisTemplate.opsForValue().get("component_access_token").toString();
+                System.out.println("accessToken"+accessToken);
 //                logger.debug("====================令牌component_access_token】：【" + accessToken + "】====================");
             } else {
                 throw new RuntimeException("微信开放平台，第三方平台获取【令牌】失败");
