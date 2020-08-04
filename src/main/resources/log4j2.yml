@@ -9,7 +9,7 @@ Configuration:
       - name: log.level.console
         value: trace
       - name: log.path
-        value: /Users/yaoyao.zhu/Documents/work-space/template_postgres/log
+        value: /usr/local/share/applications/bsd-say/log/
       - name: project.name
         value: templatePostgres
       - name: log.pattern
