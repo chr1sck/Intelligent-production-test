@@ -46,7 +46,7 @@ award:
 wechat:
   aesKey: r4cbRuIfbbnTIgJoQE33vJACJuoioZ5pRAhumITsP8O
   componentToken: bosidengqixi
-  appId:
+  appId: wx4f4363086a52e92c
   componentAppId: wx474350bcaea2d745
   componentAppSecret: 947dc4a4500adf09fc5ee31b132742e5
   getComponentAccessTokenUrl: https://api.weixin.qq.com/cgi-bin/component/api_component_token
