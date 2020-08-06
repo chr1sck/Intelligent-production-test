@@ -80,24 +80,10 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 String unionId = "123";
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-                if (record == null){
-                    //新用户第一次生成情书
-                    Record record1 = new Record();
-                    record1.setSource("微信");
-                    record1.setUnionId(unionId);
-                    /**
-                     * 昵称等 。。。
-                     */
-                    record1.setCreateLetterTimes(1);
-                    record1.setCreateDateTime(new Date());
-                    record1.setUpdateDateTime(new Date());
-                    recordMapper.insert(record1);
-                }else {
-                    int createLetterTimes = record.getCreateLetterTimes();
-                    record.setCreateLetterTimes(createLetterTimes + 1);
-                    record.setUpdateDateTime(new Date());
-                    recordMapper.updateById(record);
-                }
+                int createLetterTimes = record.getCreateLetterTimes();
+                record.setCreateLetterTimes(createLetterTimes + 1);
+                record.setUpdateDateTime(new Date());
+                recordMapper.updateById(record);
             }else {
                 //非微信端来源，待确认
 
@@ -152,10 +138,11 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //新用户第一次收到情书礼物
+                    String openId = "456";
                     Record record1 = new Record();
                     record1.setSource("微信");
                     record1.setUnionId(unionId);
-
+                    record1.setOpenId(openId);
                     /**
                      * 昵称等
                      */
@@ -164,6 +151,9 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     record1.setReceiveLetterTimes(1);
                     recordMapper.insert(record1);
                 }else {
+                    /**
+                     * 更新用户信息
+                     */
                     int receiveLetterTimes = record.getReceiveLetterTimes();
                     record.setReceiveLetterTimes(receiveLetterTimes + 1);
                     record.setUpdateDateTime(new Date());

@@ -14,6 +14,8 @@ public class Record extends BaseEntity{
 
     private String source;
 
+    private String openId;
+
     private String unionId;
 
     private String nickName;
