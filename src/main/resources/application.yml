@@ -2,9 +2,9 @@
 spring:
   redis:
     database: 4
-    host: 10.10.1.176
-    port: 6379
-    password: ribo@2016
+    host: 111.229.204.101
+    port: 63790
+    password: 1qaz2wsx
     jedis:
       pool:
         max-idle: 8
