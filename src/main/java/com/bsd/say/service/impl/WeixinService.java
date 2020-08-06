@@ -2,11 +2,15 @@ package com.bsd.say.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bsd.say.config.RedisProperies;
+import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.util.HttpRequestUtils;
+import me.chanjar.weixin.open.api.impl.WxOpenInRedisConfigStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.JedisPool;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -27,6 +31,7 @@ public class WeixinService {
     private String getAccessTokenUrl;
     @Value("${wechat.getUnionIdUrl}")
     private String getUnionIdUrl;
+    private static JedisPool pool;
     @Resource
     private RedisTemplate redisTemplate;
 
@@ -37,7 +42,8 @@ public class WeixinService {
 //        Map<String, String> reMap;
         try {
             // 核心定时器，每一个小时执行一次
-            String ComponentVerifyTicket = redisTemplate.opsForValue().get("component_verify_ticket").toString();
+            WxOpenInRedisConfigStorage inRedisConfigStorage = new WxOpenInRedisConfigStorage(getJedisPool());
+            String ComponentVerifyTicket = inRedisConfigStorage.getComponentVerifyTicket();
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("component_appid", componentAppId);
             jsonObject.put("component_appsecret", componentAppSecret);
@@ -88,5 +94,22 @@ public class WeixinService {
         JSONObject resultJson = JSONObject.parseObject(result);
         String unionId = resultJson.getString("unionid");
         return unionId;
+    }
+
+    private JedisPool getJedisPool() {
+        RedisProperies redisProperies = new RedisProperies();
+        if (pool == null) {
+            synchronized (WxOpenServiceDemo.class) {
+                if (pool == null) {
+                    pool = new JedisPool(redisProperies, redisProperies.getHost(),
+                            redisProperies.getPort(), redisProperies.getConnectionTimeout(),
+                            redisProperies.getSoTimeout(), redisProperies.getPassword(),
+                            redisProperies.getDatabase(), redisProperies.getClientName(),
+                            redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
+                            redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
+                }
+            }
+        }
+        return pool;
     }
 }
