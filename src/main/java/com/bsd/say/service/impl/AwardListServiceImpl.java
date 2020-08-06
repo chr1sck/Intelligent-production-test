@@ -6,9 +6,11 @@ import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.AwardList;
 import com.bsd.say.entities.Coupon;
+import com.bsd.say.entities.Record;
 import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.AwardListMapper;
 import com.bsd.say.mapper.CouponMapper;
+import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.AwardListService;
 import com.bsd.say.service.CouponService;
@@ -36,6 +38,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     private RedisTemplate redisTemplate;
     @Resource
     private CouponMapper couponMapper;
+    @Resource
+    private RecordMapper recordMapper;
 
     @Override
     public AwardListMapper getBaseMapper() {
@@ -206,6 +210,15 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     awardListMapper.updateById(awardList);
                     ajaxResult.setRetmsg("SUCCESS");
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
+
+                    //抽中一等奖，必定微信来源
+                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                            .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                    record.setIsAward("中奖");
+                    record.setAwardName(receiverName);
+                    record.setAddress(address);
+                    record.setAwardPhone(phone);
+                    recordMapper.updateById(record);
                 }else {
                     //短信验证失败
                     ajaxResult.setRetmsg("FAIL");
@@ -218,7 +231,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     }
 
     /**
-     * 通过code获取优惠券和抽奖
+     * 通过code获取个人优惠券和抽奖
      * @param ajaxRequest
      * @return
      */

@@ -20,7 +20,7 @@ public class LogAspect {
 
     private Logger logger = LogUtils.getPlatformLogger();
 
-    @Pointcut("execution(public * com.bsd.say.controller.*.*(..))")
+    @Pointcut("execution(public * com.bsd.say..controller.*.*(..))")
     public void webLog() {
 
     }

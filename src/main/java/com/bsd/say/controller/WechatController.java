@@ -105,6 +105,7 @@ public class WechatController {
 //            log.error(e.getMessage(), e);
             e.printStackTrace();
         }
+//        WeChatUtils.responseReplyMessage(response, "success");
         output(response, "success");
     }
 
