@@ -1,27 +1,18 @@
 package com.bsd.say.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
-import com.bsd.say.util.ResponseUtil;
+import com.bsd.say.util.MessageUtil;
 import com.bsd.say.util.Xml2MapUtil;
 import com.bsd.say.util.wechat.AesException;
 import com.bsd.say.util.wechat.WXBizMsgCrypt;
-import com.bsd.say.util.wechat.WeChatUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,13 +22,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("wechat")
 public class WechatController {
+
+
     @Value("${wechat.aesKey}")
     private String aesKey;
     @Value("${wechat.componentToken}")
@@ -49,29 +40,55 @@ public class WechatController {
     @Resource
     private RedisTemplate redisTemplate;
     Logger logger = LogUtils.getBussinessLogger();
+
+
     /**
      * 接收component_verify_ticket 或 authorized事件
      */
-    @RequestMapping(value = "/getComponentVerifyTicket")
+    @PostMapping(value = "/getComponentVerifyTicket")
     @ResponseBody
-    public void getComponentVerifyTicket(HttpServletRequest request, HttpServletResponse response) throws IOException, AesException, DocumentException {
+    public void getComponentVerifyTicket(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         String nonce = request.getParameter("nonce");
         String timestamp = request.getParameter("timestamp");
         String signature = request.getParameter("signature");
         String msgSignature = request.getParameter("msg_signature");
 //        String postData = request.getParameter("postData");
-        System.out.println("nonce: " + nonce);
-        System.out.println("timestamp: " + timestamp);
-        System.out.println("msgSignature: " + msgSignature);
+        logger.info("nonce: " + nonce);
+        logger.info("timestamp: " + timestamp);
+        logger.info("signature: " + signature);
+        logger.info("msgSignature: " + msgSignature);
+
+
+
+
+//        Map<String, String> map= MessageUtil.parseXml(request);
+
+//        System.out.println(map.toString());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         StringBuilder sb = new StringBuilder();
         BufferedReader in = request.getReader();
         String line;
-        while((line = in.readLine()) != null) {
+        while ((line = in.readLine()) != null) {
             sb.append(line);
         }
         String postData = sb.toString();
-        System.out.println("postData: " + postData);
+        logger.info("postData: " + postData);
         try {
             //这个类是微信官网提供的解密类,需要用到消息校验Token 消息加密Key和服务平台appid
             WXBizMsgCrypt pc = new WXBizMsgCrypt(componentToken,
@@ -98,9 +115,12 @@ public class WechatController {
             Map<String, Object> result = Xml2MapUtil.xml2map(xml);// 将xml转为map
 
             String componentVerifyTicket = MapUtils.getString(result, "ComponentVerifyTicket");
+
+            logger.info("----verify ticket--" + componentVerifyTicket);
+
             // 存储平台授权票据,保存ticket
             String TICKET = componentVerifyTicket;
-            redisTemplate.opsForValue().set("component_verify_ticket",TICKET);
+            redisTemplate.opsForValue().set("component_verify_ticket", TICKET);
         } catch (Exception e) {
 //            log.error(e.getMessage(), e);
             e.printStackTrace();
@@ -110,20 +130,22 @@ public class WechatController {
 
     /**
      * 工具类：回复微信服务器"文本消息"
+     *
      * @param response
      * @param returnvaleue
      */
-    public void output(HttpServletResponse response,String returnvaleue){
+    public void output(HttpServletResponse response, String returnvaleue) {
         try {
             PrintWriter pw = response.getWriter();
             pw.write(returnvaleue);
-//			System.out.println("****************returnvaleue***************="+returnvaleue);
+//			logger.info("****************returnvaleue***************="+returnvaleue);
             pw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-//    /**
+
+    //    /**
 //     * 处理授权事件的推送
 //     *
 //     * @param request
@@ -160,7 +182,7 @@ public class WechatController {
 //    }
 //
 //
-    @RequestMapping(value="/{appid}/callback",method={RequestMethod.GET,RequestMethod.POST})
+    @RequestMapping(value = "/{appid}/callback", method = {RequestMethod.GET, RequestMethod.POST})
     public void callBackEvent(HttpServletRequest request, HttpServletResponse response) throws IOException, DocumentException, AesException {
 
 //        String msgSignature = request.getParameter("msg_signature");
@@ -248,7 +270,7 @@ public class WechatController {
 //        try {
 //            WXBizMsgCrypt pc = new WXBizMsgCrypt(componentToken, aesKey, componentAppId);
 //            returnvaleue = pc.encryptMsg(replyMsg, createTime.toString(), "easemob");
-////            System.out.println("------------------加密后的返回内容 returnvaleue： "+returnvaleue);
+////            logger.info("------------------加密后的返回内容 returnvaleue： "+returnvaleue);
 //        } catch (AesException e) {
 //            e.printStackTrace();
 //        }
@@ -269,7 +291,7 @@ public class WechatController {
 //    public void replyApiTextMessage(HttpServletRequest request, HttpServletResponse response, String auth_code, String fromUserName) throws DocumentException, IOException {
 //        String authorization_code = auth_code;
 //        // 得到微信授权成功的消息后，应该立刻进行处理！！相关信息只会在首次授权的时候推送过来
-//        System.out.println("------step.1----使用客服消息接口回复粉丝----逻辑开始-------------------------");
+//        logger.info("------step.1----使用客服消息接口回复粉丝----逻辑开始-------------------------");
 //        try {
 //            ApiComponentToken apiComponentToken = new ApiComponentToken();
 //            apiComponentToken.setComponent_appid(COMPONENT_APPID);
@@ -278,9 +300,9 @@ public class WechatController {
 //            apiComponentToken.setComponent_verify_ticket(entity.getTicket());
 //            String component_access_token = JwThirdAPI.getAccessToken(apiComponentToken);
 //
-//            System.out.println("------step.2----使用客服消息接口回复粉丝------- component_access_token = "+component_access_token + "---------authorization_code = "+authorization_code);
+//            logger.info("------step.2----使用客服消息接口回复粉丝------- component_access_token = "+component_access_token + "---------authorization_code = "+authorization_code);
 //            net.sf.json.JSONObject authorizationInfoJson = JwThirdAPI.getApiQueryAuthInfo(COMPONENT_APPID, authorization_code, component_access_token);
-//            System.out.println("------step.3----使用客服消息接口回复粉丝-------------- 获取authorizationInfoJson = "+authorizationInfoJson);
+//            logger.info("------step.3----使用客服消息接口回复粉丝-------------- 获取authorizationInfoJson = "+authorizationInfoJson);
 //            net.sf.json.JSONObject infoJson = authorizationInfoJson.getJSONObject("authorization_info");
 //            String authorizer_access_token = infoJson.getString("authorizer_access_token");
 //
