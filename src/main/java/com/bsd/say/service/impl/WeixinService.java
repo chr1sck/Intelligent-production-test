@@ -5,20 +5,30 @@ import com.alibaba.fastjson.JSONObject;
 import com.bsd.say.config.RedisProperies;
 import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.util.HttpRequestUtils;
+import com.bsd.say.util.LogUtils;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.chanjar.weixin.open.api.impl.WxOpenInRedisConfigStorage;
+import me.chanjar.weixin.open.api.impl.WxOpenMessageRouter;
+import me.chanjar.weixin.open.api.impl.WxOpenServiceImpl;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisPool;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class WeixinService {
+public class WeixinService  extends WxOpenServiceImpl {
+    @Value("${wechat.aesKey}")
+    private String aesKey;
+    @Value("${wechat.componentToken}")
+    private String componentToken;
     @Value("${wechat.appId}")
     private String appId;
     @Value("${wechat.componentAppId}")
@@ -31,19 +41,34 @@ public class WeixinService {
     private String getAccessTokenUrl;
     @Value("${wechat.getUnionIdUrl}")
     private String getUnionIdUrl;
-    private static JedisPool pool;
     @Resource
     private RedisTemplate redisTemplate;
 
+    private WxOpenMessageRouter wxOpenMessageRouter;
+    Logger logger = LogUtils.getBussinessLogger();
     /**
      * 刷新第三方accessToken
      */
+
     public void refreshComponentAccessToken(){
-//        Map<String, String> reMap;
+        RedisProperies redisProperies = new RedisProperies();
+        JedisPool pool =
+                    new JedisPool(redisProperies, redisProperies.getHost(),
+                            redisProperies.getPort(), redisProperies.getConnectionTimeout(),
+                            redisProperies.getSoTimeout(), redisProperies.getPassword(),
+                            redisProperies.getDatabase(), redisProperies.getClientName(),
+                            redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
+                            redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
         try {
-            // 核心定时器，每一个小时执行一次
-            WxOpenInRedisConfigStorage inRedisConfigStorage = new WxOpenInRedisConfigStorage(getJedisPool());
+            WxOpenInRedisConfigStorage inRedisConfigStorage = new WxOpenInRedisConfigStorage(pool);
+            inRedisConfigStorage.setComponentAppId(componentAppId);
+            inRedisConfigStorage.setComponentAppSecret(componentAppSecret);
+            inRedisConfigStorage.setComponentToken(componentToken);
+            inRedisConfigStorage.setComponentAesKey(aesKey);
+            setWxOpenConfigStorage(inRedisConfigStorage);
+            wxOpenMessageRouter = new WxOpenMessageRouter(this);
             String ComponentVerifyTicket = inRedisConfigStorage.getComponentVerifyTicket();
+            logger.info("ComponentVerifyTicket："+ComponentVerifyTicket);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("component_appid", componentAppId);
             jsonObject.put("component_appsecret", componentAppSecret);
@@ -94,22 +119,5 @@ public class WeixinService {
         JSONObject resultJson = JSONObject.parseObject(result);
         String unionId = resultJson.getString("unionid");
         return unionId;
-    }
-
-    private JedisPool getJedisPool() {
-        RedisProperies redisProperies = new RedisProperies();
-        if (pool == null) {
-            synchronized (WxOpenServiceDemo.class) {
-                if (pool == null) {
-                    pool = new JedisPool(redisProperies, redisProperies.getHost(),
-                            redisProperies.getPort(), redisProperies.getConnectionTimeout(),
-                            redisProperies.getSoTimeout(), redisProperies.getPassword(),
-                            redisProperies.getDatabase(), redisProperies.getClientName(),
-                            redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
-                            redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
-                }
-            }
-        }
-        return pool;
     }
 }
