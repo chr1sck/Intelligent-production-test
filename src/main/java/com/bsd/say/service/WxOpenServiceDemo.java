@@ -35,6 +35,13 @@ public class WxOpenServiceDemo extends WxOpenServiceImpl {
     @PostConstruct
     public void init() {
         WxOpenInRedisConfigStorage inRedisConfigStorage = new WxOpenInRedisConfigStorage(getJedisPool());
+
+
+        inRedisConfigStorage.getComponentVerifyTicket();
+
+
+
+
         inRedisConfigStorage.setComponentAppId(componentAppId);
         inRedisConfigStorage.setComponentAppSecret(componentAppSecret);
         inRedisConfigStorage.setComponentToken(componentToken);
