@@ -4,12 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
-import com.bsd.say.entities.AwardList;
-import com.bsd.say.entities.Coupon;
-import com.bsd.say.entities.LoveLetter;
-import com.bsd.say.entities.Users;
+import com.bsd.say.entities.*;
 import com.bsd.say.mapper.CouponMapper;
 import com.bsd.say.mapper.LoveLetterMapper;
+import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.CouponService;
 import com.bsd.say.util.HttpRequestUtils;
@@ -20,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -43,6 +42,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     private LoveLetterMapper loveLetterMapper;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private RecordMapper recordMapper;
     @Override
     public CouponMapper getBaseMapper() {
         return this.couponMapper;
@@ -101,17 +102,32 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 users.setPhone(phone);
                                 users.setUpdateDateTime(new Date());
                                 usersMapper.updateById(users);
+                                //统计领取二等奖
+                                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                                record.setIsHavaCoupon2("有");
+                                record.setUpdateDateTime(new Date());
+                                recordMapper.updateById(record);
                             }
                             else {
                                 if (StringUtils.isBlank(code)){
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+
+                                    // h5的record
+
                                 }else {
                                     //来源微信
                                     String unionId = "123";
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+
+                                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                                            .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                                    record.setIsHavaCoupon1("有");
+                                    record.setUpdateDateTime(new Date());
+                                    recordMapper.updateById(record);
                                 }
                                 coupon.setUserId(users.getId());
                                 coupon.setCreateDateTime(new Date());
@@ -138,7 +154,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     }
 
     /**
-     * 有没有领取过优惠券  领取优惠券手机号必传
+     * 有没有领取过优惠券
      * @param ajaxRequest
      * @return
      */

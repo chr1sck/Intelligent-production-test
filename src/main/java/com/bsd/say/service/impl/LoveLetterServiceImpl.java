@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.LoveLetter;
+import com.bsd.say.entities.Record;
 import com.bsd.say.mapper.LoveLetterMapper;
+import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.service.LoveLetterService;
 import com.bsd.say.util.RandomUtils;
 import com.sun.org.apache.bcel.internal.generic.NEW;
@@ -21,7 +23,8 @@ import java.util.Date;
 public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, LoveLetter> implements LoveLetterService {
     @Autowired
     protected LoveLetterMapper loveLetterMapper;
-
+    @Autowired
+    private RecordMapper recordMapper;
     @Override
     public LoveLetterMapper getBaseMapper() {
         return this.loveLetterMapper;
@@ -45,6 +48,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             String sender_name = data.getString("sender_name");
             Integer love_type = data.getInteger("love_type");
             String receive_name = data.getString("receive_name");
+            String code = data.getString("code");
             if (StringUtils.isBlank(content)){
                 ajaxResult.setRetmsg("CONTENT MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
@@ -71,6 +75,23 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 loveLetterMapper.insert(loveLetter);
                 ajaxResult.setData(letterId);
             }
+            if (StringUtils.isNotEmpty(code)){
+                //来源于微信
+                String unionId = "123";
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                int createLetterTimes = record.getCreateLetterTimes();
+                record.setCreateLetterTimes(createLetterTimes + 1);
+                record.setUpdateDateTime(new Date());
+                recordMapper.updateById(record);
+            }else {
+                //非微信端来源，待确认
+
+
+
+
+
+            }
         }
         ajaxResult.setRetcode(AjaxResult.SUCCESS);
         ajaxResult.setRetmsg("SUCCESS");
@@ -91,6 +112,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             ajaxResult.setRetcode(AjaxResult.FAILED);
             return ajaxResult;
         }else{
+            String code = data.getString("code");
             String letterId = data.getString("letterId");
             if (StringUtils.isBlank(letterId)){
                 ajaxResult.setRetmsg("LETTERID MISSING");
@@ -108,6 +130,40 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
                     ajaxResult.setData(loveLetter);
                 }
+            }
+            if (StringUtils.isNotEmpty(code)){
+                //来源于微信
+                String unionId = "123";
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                if (record == null){
+                    //新用户第一次收到情书礼物
+                    String openId = "456";
+                    Record record1 = new Record();
+                    record1.setSource("微信");
+                    record1.setUnionId(unionId);
+                    record1.setOpenId(openId);
+                    /**
+                     * 昵称等
+                     */
+                    record1.setCreateDateTime(new Date());
+                    record1.setUpdateDateTime(new Date());
+                    record1.setReceiveLetterTimes(1);
+                    recordMapper.insert(record1);
+                }else {
+                    /**
+                     * 更新用户信息
+                     */
+                    int receiveLetterTimes = record.getReceiveLetterTimes();
+                    record.setReceiveLetterTimes(receiveLetterTimes + 1);
+                    record.setUpdateDateTime(new Date());
+                    recordMapper.updateById(record);
+                }
+            }else {
+                //非微信端待确认。。。
+
+
+
             }
         }
         return ajaxResult;
