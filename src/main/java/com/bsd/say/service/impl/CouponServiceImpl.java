@@ -121,8 +121,34 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                    if (users == null){
+                                        logger.info("非微信端新会员");
+                                        Users newUsers = new Users();
+                                        newUsers.setPhone(phone);
+                                        newUsers.setUserType(1);
+                                        newUsers.setCreateDateTime(new Date());
+                                        newUsers.setUpdateDateTime(new Date());
+                                        usersMapper.insert(newUsers);
+                                    }else {
+                                        logger.info("非微信访问端老会员,可能之前用微信访问过");
+                                        List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                                                .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                                        if (coupons.size() > 0){
+                                            ajaxResult.setRetmsg("已经领过");
+                                            ajaxResult.setRetcode(AjaxResult.FAILED);
+                                            ajaxResult.setData(false);
+                                            return ajaxResult;
+                                        }
+                                    }
+                                    ajaxResult.setRetmsg("可以领取优惠券");
+                                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                                    ajaxResult.setData(true);
 
-                                    // h5的record
+                                    Record record = new Record();
+                                    record.setPhone(phone);
+                                    record.setIsHavaCoupon1("有");
+                                    record.setCreateDateTime(new Date());
+                                    recordMapper.insert(record);
 
                                 }else {
                                     //来源微信
@@ -130,6 +156,23 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                     logger.info("union_id:"+unionId);
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                    //防非法请求,再校验一遍
+                                    List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                                            .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                                    if (coupons.size() > 0){
+                                        ajaxResult.setRetmsg("非法请求，已经领过");
+                                        ajaxResult.setRetcode(AjaxResult.FAILED);
+                                        ajaxResult.setData(false);
+                                        return ajaxResult;
+                                    }
+                                    if (users.getUserType() == 2){
+                                        //既是寄件人又是收信人
+                                        users.setUserType(3);
+                                        usersMapper.updateById(users);
+                                    }else if (users.getUserType() == 0){
+                                        users.setUserType(1);
+                                        usersMapper.updateById(users);
+                                    }
 
                                     Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
@@ -162,7 +205,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     }
 
     /**
-     * 有没有领取过优惠券
+     * 有没有领取过优惠券(微信端)
      * @param ajaxRequest
      * @return
      */
@@ -175,53 +218,23 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             ajaxResult.setRetcode(AjaxResult.FAILED);
             return ajaxResult;
         }else {
-            String phone = data.getString("phone");
+//            String phone = data.getString("phone");
             String code = data.getString("code");
-            if (StringUtils.isBlank(phone)&&StringUtils.isEmpty(code)){
-                ajaxResult.setRetmsg("PARAM MISSING");
+            if (StringUtils.isEmpty(code)){
+                ajaxResult.setRetmsg("code MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
             }
-            Users users ;
-            Boolean isWechat = true;
-            if (StringUtils.isNotEmpty(code)){
-                String unionId = weixinService.getUnionId(code);
-                logger.info("union_id:"+unionId);
-                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-            }else {
-                users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                isWechat = false;
-            }
+//            Boolean isWechat = true;
+            String unionId = weixinService.getUnionId(code);
+            logger.info("union_id:"+unionId);
+            Users users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
             if (users == null){
-                //新会员直接创，肯定没领取过券
-                Users newUsers = new Users();
-                if (isWechat){
-                    String unionId = weixinService.getUnionId(code);
-                    logger.info("union_id:"+unionId);
-                    newUsers.setUnionId(unionId);
-                }else {
-                    newUsers.setPhone(phone);
-                }
-                newUsers.setUserType(1);
-                newUsers.setCreateDateTime(new Date());
-                newUsers.setUpdateDateTime(new Date());
-                usersMapper.insert(newUsers);
                 ajaxResult.setRetmsg("可以领取优惠券");
                 ajaxResult.setRetcode(AjaxResult.SUCCESS);
                 ajaxResult.setData(true);
             }else {
-                //老会员
-                users.setPhone(phone);
-                if (users.getUserType() == 2){
-                    //既是寄件人又是收信人
-                    users.setUserType(3);
-                    usersMapper.updateById(users);
-                }else if (users.getUserType() == 0){
-                    users.setUserType(1);
-                    usersMapper.updateById(users);
-                }
                 List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
                         .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
                 if (coupons.size() == 0 || coupons == null){
