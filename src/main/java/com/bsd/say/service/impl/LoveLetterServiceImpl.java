@@ -9,10 +9,14 @@ import com.bsd.say.entities.Record;
 import com.bsd.say.mapper.LoveLetterMapper;
 import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.service.LoveLetterService;
+import com.bsd.say.util.HttpRequestUtils;
+import com.bsd.say.util.LogUtils;
 import com.bsd.say.util.RandomUtils;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +25,19 @@ import java.util.Date;
 @Service("loveLetterService")
 @Transactional
 public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, LoveLetter> implements LoveLetterService {
+    @Value("${wechat.getWxUserInfoUrl}")
+    private String getWxUserInfoUrl;
     @Autowired
     protected LoveLetterMapper loveLetterMapper;
     @Autowired
     private RecordMapper recordMapper;
+    @Autowired
+    private WeixinService weixinService;
     @Override
     public LoveLetterMapper getBaseMapper() {
         return this.loveLetterMapper;
     }
-
+    private Logger logger = LogUtils.getBussinessLogger();
     /**
      * 生成情书
      * @param ajaxRequest
@@ -77,7 +85,8 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             }
             if (StringUtils.isNotEmpty(code)){
                 //来源于微信
-                String unionId = "123";
+                String unionId = weixinService.getUnionId(code);
+                logger.info("union_id:"+unionId);
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 int createLetterTimes = record.getCreateLetterTimes();
@@ -133,27 +142,29 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             }
             if (StringUtils.isNotEmpty(code)){
                 //来源于微信
-                String unionId = "123";
+                String unionId = weixinService.getUnionId(code);
+                logger.info("union_id:"+unionId);
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //新用户第一次收到情书礼物
-                    String openId = "456";
+                    JSONObject weixin = weixinService.getAccessToken(code);
+                    String openId = weixin.getString("openid");
+                    String accessToken = weixin.getString("access_token");
+                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
+                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
+                    JSONObject userJson = JSONObject.parseObject(userString);
+                    String nickName = userJson.getString("nickname");
                     Record record1 = new Record();
                     record1.setSource("微信");
                     record1.setUnionId(unionId);
                     record1.setOpenId(openId);
-                    /**
-                     * 昵称等
-                     */
+                    record1.setNickName(nickName);
                     record1.setCreateDateTime(new Date());
                     record1.setUpdateDateTime(new Date());
                     record1.setReceiveLetterTimes(1);
                     recordMapper.insert(record1);
                 }else {
-                    /**
-                     * 更新用户信息
-                     */
                     int receiveLetterTimes = record.getReceiveLetterTimes();
                     record.setReceiveLetterTimes(receiveLetterTimes + 1);
                     record.setUpdateDateTime(new Date());

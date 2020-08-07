@@ -14,7 +14,9 @@ import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.AwardListService;
 import com.bsd.say.service.CouponService;
+import com.bsd.say.util.LogUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,11 +42,15 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     private CouponMapper couponMapper;
     @Resource
     private RecordMapper recordMapper;
+    @Autowired
+    WeixinService weixinService;
 
     @Override
     public AwardListMapper getBaseMapper() {
         return this.awardListMapper;
     }
+
+    private Logger logger = LogUtils.getBussinessLogger();
 
     /**
      * 抽奖
@@ -67,7 +73,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     ajaxResult.setRetmsg("CODE MISSING");
                     return ajaxResult;
                 } else {
-                    String unionId = "123";
+                    String unionId = weixinService.getUnionId(code);
+                    logger.info("union_id:"+unionId);
                     Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                     AwardList maxIdAward = awardListMapper.selectByMaxId();
@@ -116,7 +123,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("CODE MISSING");
                 return ajaxResult;
             } else {
-                String unionId = "123";
+                String unionId = weixinService.getUnionId(code);
+                logger.info("union_id:"+unionId);
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
@@ -184,7 +192,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             }else {
                 if (noteCode.equals(redisTemplate.opsForValue().get(phone))){
                     //验证成功
-                    String unionId = "123";
+                    String unionId = weixinService.getUnionId(code);
+                    logger.info("union_id:"+unionId);
                     Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                     if (users == null){
@@ -250,7 +259,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("CODE MISSING");
                 return ajaxResult;
             }else {
-                String unionId = "123";
+                String unionId = weixinService.getUnionId(code);
+                logger.info("union_id:"+unionId);
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){

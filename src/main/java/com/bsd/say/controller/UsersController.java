@@ -61,4 +61,19 @@ public class UsersController extends BaseController<UsersService, Users>{
         return ajaxResult;
     }
 
+    @RequestMapping(value = "/is-subscribe")
+    public AjaxResult isSubscribe(@RequestBody AjaxRequest ajaxRequest){
+
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = usersService.isSubscribe(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
+        return ajaxResult;
+    }
+
 }

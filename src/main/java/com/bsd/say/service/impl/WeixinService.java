@@ -41,6 +41,8 @@ public class WeixinService  extends WxOpenServiceImpl {
     private String getAccessTokenUrl;
     @Value("${wechat.getUnionIdUrl}")
     private String getUnionIdUrl;
+    @Value("${wechat.getWxUserInfoUrl}")
+    private String getWxUserInfoUrl;
     @Resource
     private RedisTemplate redisTemplate;
 
@@ -120,4 +122,5 @@ public class WeixinService  extends WxOpenServiceImpl {
         String unionId = resultJson.getString("unionid");
         return unionId;
     }
+
 }

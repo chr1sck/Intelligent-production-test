@@ -32,8 +32,12 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
     private String sendSource;
     @Value("${bsd.verifySMSCodeUrl}")
     private String verifySMSCodeUrl;
+    @Value("${wechat.getWxUserInfoUrl}")
+    private String getWxUserInfoUrl;
     @Autowired
     protected UsersMapper usersMapper;
+    @Autowired
+    private WeixinService weixinService;
 
     @Override
     public UsersMapper getBaseMapper() {
@@ -78,6 +82,39 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
                     ajaxResult.setRetmsg("SEND ERROR");
                     return ajaxResult;
                 }
+            }
+        }
+    }
+
+    @Override
+    public AjaxResult isSubscribe(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetmsg("DATA MISSING");
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            return ajaxResult;
+        }else {
+            String code = data.getString("code");
+            if (StringUtils.isEmpty(code)){
+                ajaxResult.setRetmsg("CODE MISSING");
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                return ajaxResult;
+            }else {
+                JSONObject weixin = weixinService.getAccessToken(code);
+                String openId = weixin.getString("openid");
+                String accessToken = weixin.getString("access_token");
+                String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
+                JSONObject userinfo = JSONObject.parseObject(HttpRequestUtils.sendGet(userInfoUrl));
+                int subscribe = userinfo.getInteger("subscribe");
+                if (subscribe == 1){
+                    ajaxResult.setData(1);
+                    ajaxResult.setRetmsg("已关注公众号");
+                }else {
+                    ajaxResult.setData(0);
+                    ajaxResult.setRetmsg("未关注公众号");
+                }
+                return ajaxResult;
             }
         }
     }

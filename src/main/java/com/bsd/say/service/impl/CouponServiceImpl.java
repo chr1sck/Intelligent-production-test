@@ -11,8 +11,10 @@ import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.CouponService;
 import com.bsd.say.util.HttpRequestUtils;
+import com.bsd.say.util.LogUtils;
 import com.bsd.say.util.MD5Utils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -48,6 +50,10 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     public CouponMapper getBaseMapper() {
         return this.couponMapper;
     }
+    @Autowired
+    WeixinService weixinService;
+
+    private Logger logger = LogUtils.getBussinessLogger();
 
     /**
      * 领取优惠券
@@ -96,7 +102,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             Coupon coupon = new Coupon();
                             Users users;
                             if (isAward){
-                                String unionId = "123";
+                                String unionId = weixinService.getUnionId(code);
+                                logger.info("union_id:"+unionId);
                                 users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                 users.setPhone(phone);
@@ -119,7 +126,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
 
                                 }else {
                                     //来源微信
-                                    String unionId = "123";
+                                    String unionId = weixinService.getUnionId(code);
+                                    logger.info("union_id:"+unionId);
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
 
@@ -177,7 +185,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             Users users ;
             Boolean isWechat = true;
             if (StringUtils.isNotEmpty(code)){
-                String unionId = "123";
+                String unionId = weixinService.getUnionId(code);
+                logger.info("union_id:"+unionId);
                 users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
             }else {
@@ -189,7 +198,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                 //新会员直接创，肯定没领取过券
                 Users newUsers = new Users();
                 if (isWechat){
-                    String unionId = "123";
+                    String unionId = weixinService.getUnionId(code);
+                    logger.info("union_id:"+unionId);
                     newUsers.setUnionId(unionId);
                 }else {
                     newUsers.setPhone(phone);
