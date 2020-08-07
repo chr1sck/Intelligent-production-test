@@ -45,4 +45,9 @@ public class AwardList extends BaseEntity{
      * 收奖人
      */
     private String receiverName;
+
+    /**
+     * 是否已被领取
+     */
+    private int isReceive;
 }

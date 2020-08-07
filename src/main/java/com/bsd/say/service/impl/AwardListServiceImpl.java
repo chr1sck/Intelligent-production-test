@@ -214,6 +214,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                         return ajaxResult;
                     }
                     awardList.setAddress(address);
+                    awardList.setIsReceive(1);
                     awardList.setPhone(phone);
                     awardList.setReceiverName(receiverName);
                     awardListMapper.updateById(awardList);
