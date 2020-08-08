@@ -6,8 +6,10 @@ import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.LoveLetter;
 import com.bsd.say.entities.Record;
+import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.LoveLetterMapper;
 import com.bsd.say.mapper.RecordMapper;
+import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.LoveLetterService;
 import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
@@ -33,6 +35,8 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
     private RecordMapper recordMapper;
     @Autowired
     private WeixinService weixinService;
+    @Autowired
+    private UsersMapper usersMapper;
     @Override
     public LoveLetterMapper getBaseMapper() {
         return this.loveLetterMapper;
@@ -95,11 +99,6 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 recordMapper.updateById(record);
             }else {
                 //非微信端来源，待确认
-
-
-
-
-
             }
         }
         ajaxResult.setRetcode(AjaxResult.SUCCESS);
@@ -172,8 +171,6 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 }
             }else {
                 //非微信端待确认。。。
-
-
 
             }
         }

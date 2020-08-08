@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -116,13 +117,37 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         }
                     }else {
                         //来源微信
-                        String unionId = weixinService.getUnionId(code);
+                        String unionId = "456";
                         logger.info("union_id:"+unionId);
                         users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                 .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                        List<Coupon> coupons ;
+                        if (users == null){
+                            Users usersByPhone = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
+                                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                            //防止先第三方领券，再微信端领券
+                            if (usersByPhone == null){
+                                Users users1 = new Users();
+                                users1.setPhone(phone);
+                                users1.setUnionId(unionId);
+                                users1.setUserType(1);
+                                users1.setCreateDateTime(new Date());
+                                users1.setUpdateDateTime(new Date());
+                                usersMapper.insert(users1);
+                                coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users1.getId())
+                                        .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                            }else{
+                                usersByPhone.setUnionId(unionId);
+                                usersByPhone.setUpdateDateTime(new Date());
+                                usersMapper.updateById(usersByPhone);
+                                coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,usersByPhone.getId())
+                                        .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                            }
+                        }else {
+                            coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
+                                    .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                        }
                         //防非法请求,再校验一遍
-                        List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
-                                .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
                         if (coupons.size() > 0){
                             ajaxResult.setRetmsg("非法请求，已经领过");
                             ajaxResult.setRetcode(AjaxResult.FAILED);
@@ -131,8 +156,6 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         }
                     }
                 }
-
-
                 if (noteCode.equals(redisTemplate.opsForValue().get(phone))){
                     String token = MD5Utils.md5(tokenkey+df.format(new Date()));
                     //验证成功，领券

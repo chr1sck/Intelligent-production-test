@@ -10,8 +10,6 @@ import lombok.Data;
 @Data
 public class Record extends BaseEntity{
 
-    private Long id;
-
     private String source;
 
     private String openId;

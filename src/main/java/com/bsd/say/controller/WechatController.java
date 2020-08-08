@@ -135,25 +135,8 @@ public class WechatController {
 
     @RequestMapping("test")
     public void test(){
-        JedisPool pool = new JedisPool();
-        RedisProperies redisProperies = new RedisProperies();
-        if (pool == null) {
-            synchronized (WxOpenServiceDemo.class) {
-                if (pool == null) {
-                    pool = new JedisPool(redisProperies, redisProperies.getHost(),
-                            redisProperies.getPort(), redisProperies.getConnectionTimeout(),
-                            redisProperies.getSoTimeout(), redisProperies.getPassword(),
-                            redisProperies.getDatabase(), redisProperies.getClientName(),
-                            redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
-                            redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
-                }
-            }
-        }
-        Jedis jedis = null;
-        RedisProperies properies = new RedisProperies();
-
-        jedis = pool.getResource();
-        System.out.println(jedis.get("wechat_component_verify_ticket:wx474350bcaea2d745"));
+//        Object o = redisTemplate.opsForValue().getOperations();
+        weixinService.refreshComponentAccessToken();
     }
 
 }
