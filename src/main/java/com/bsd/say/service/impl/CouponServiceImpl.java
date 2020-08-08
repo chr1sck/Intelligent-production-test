@@ -108,7 +108,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
                                     .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
                             if (coupons.size() > 0){
-                                ajaxResult.setRetmsg("已经领过");
+                                ajaxResult.setRetmsg("您已经领过优惠券");
                                 ajaxResult.setRetcode(AjaxResult.FAILED);
                                 ajaxResult.setData(false);
                                 return ajaxResult;
@@ -124,7 +124,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         List<Coupon> coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
                                 .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
                         if (coupons.size() > 0){
-                            ajaxResult.setRetmsg("非法请求，已经领过");
+                            ajaxResult.setRetmsg("非法请求，您已经领过优惠券");
                             ajaxResult.setRetcode(AjaxResult.FAILED);
                             ajaxResult.setData(false);
                             return ajaxResult;
