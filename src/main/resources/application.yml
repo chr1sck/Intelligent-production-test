@@ -59,7 +59,7 @@ wechat:
 bsd:
   tokenkey: BOSIDENG
   sendSource: BRAND_VERIFY_CODE
-  verifySMSCodeUrl: http://vtest.bsd.cn/BSD_WXAPP/sysWeChat/verifySMSCode?token=
+  verifySMSCodeUrl: http://wxitf.bsd.cn/BSD_WXAPP/sysWeChat/verifySMSCode?token=
   addCouponUrl: http://wxitf.bsd.cn/BSD_WXAPP/miniProgram/addCoupon?token=
 ### 上传文件路径
 #upload:
