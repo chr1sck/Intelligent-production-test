@@ -147,7 +147,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         }
                     }else {
                         //来源微信
-                        String unionId = "456";
+                        String unionId = weixinService.getUnionId("code");
                         logger.info("union_id:"+unionId);
                         users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                 .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -172,6 +172,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 usersMapper.updateById(usersByPhone);
                                 coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,usersByPhone.getId())
                                         .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+
                             }
                         }else {
                             coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
@@ -225,20 +226,36 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                                    if (StringUtils.isNotEmpty(users.getUnionId())){
-                                        Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,users.getUnionId())
-                                                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                                        Record record = new Record();
                                         record.setPhone(phone);
+                                        record.setSource(sourceName);
                                         record.setIsHavaCoupon1("有");
                                         record.setCreateDateTime(new Date());
-                                        recordMapper.updateById(record);
-                                    }
-                                    Record record = new Record();
-                                    record.setPhone(phone);
-                                    record.setSource(sourceName);
-                                    record.setIsHavaCoupon1("有");
-                                    record.setCreateDateTime(new Date());
-                                    recordMapper.insert(record);
+                                        recordMapper.insert(record);
+//                                    if (StringUtils.isNotEmpty(users.getUnionId())){
+//                                        Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,users.getUnionId())
+//                                                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+//                                        if (record != null){
+//                                            record.setPhone(phone);
+//                                            record.setIsHavaCoupon1("有");
+//                                            record.setCreateDateTime(new Date());
+//                                            recordMapper.updateById(record);
+//                                        }else {
+//                                            Record record2 = new Record();
+//                                            record.setPhone(phone);
+//                                            record.setSource(sourceName);
+//                                            record.setIsHavaCoupon1("有");
+//                                            record.setCreateDateTime(new Date());
+//                                            recordMapper.insert(record2);
+//                                        }
+//                                    }else {
+//                                        Record record = new Record();
+//                                        record.setPhone(phone);
+//                                        record.setSource(sourceName);
+//                                        record.setIsHavaCoupon1("有");
+//                                        record.setCreateDateTime(new Date());
+//                                        recordMapper.insert(record);
+//                                    }
                                 }else {
                                     //来源微信
                                     String unionId = weixinService.getUnionId(code);
