@@ -6,9 +6,11 @@ import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.LoveLetter;
 import com.bsd.say.entities.Record;
+import com.bsd.say.entities.Source;
 import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.LoveLetterMapper;
 import com.bsd.say.mapper.RecordMapper;
+import com.bsd.say.mapper.SourceMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.LoveLetterService;
 import com.bsd.say.util.HttpRequestUtils;
@@ -37,6 +39,8 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
     private WeixinService weixinService;
     @Autowired
     private UsersMapper usersMapper;
+    @Autowired
+    private SourceMapper sourceMapper;
     @Override
     public LoveLetterMapper getBaseMapper() {
         return this.loveLetterMapper;
@@ -122,6 +126,35 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
         }else{
             String code = data.getString("code");
             String letterId = data.getString("letterId");
+            String qrCode = data.getString("qrCode");
+            String postCode = data.getString("postCode");
+            String sourceName;
+            if (StringUtils.isNotEmpty(qrCode)){
+                //二维码编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到二维码code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else if (StringUtils.isNotEmpty(postCode)){
+                //海报编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getPostCode,postCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到海报code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else {
+                sourceName = "";
+            }
+
             if (StringUtils.isBlank(letterId)){
                 ajaxResult.setRetmsg("LETTERID MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
@@ -162,6 +195,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     record1.setCreateDateTime(new Date());
                     record1.setUpdateDateTime(new Date());
                     record1.setReceiveLetterTimes(1);
+                    record1.setSource(sourceName);
                     recordMapper.insert(record1);
                 }else {
                     int receiveLetterTimes = record.getReceiveLetterTimes();
