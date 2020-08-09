@@ -32,6 +32,8 @@ import java.util.List;
 public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, AwardList> implements AwardListService {
     @Value("${award.rule}")
     private Integer rule;
+    @Value("${award.amount}")
+    private Integer amount;
     @Resource
     private UsersMapper usersMapper;
     @Autowired
@@ -86,9 +88,16 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     awardList.setUpdateDateTime(new Date());
                     //中大奖
                     if (newAwardNumner % rule == 0){
-                        awardList.setAwardName("波司登羽绒服");
-                        awardList.setAwardType(1);
-                        ajaxResult.setRetmsg("恭喜中一等奖，羽绒服");
+                        if (newAwardNumner > rule * amount){
+                            logger.info("没一等奖了");
+                            awardList.setAwardName("波司登优惠券");
+                            awardList.setAwardType(2);
+                            ajaxResult.setRetmsg("恭喜中二等奖，优惠券");
+                        }else {
+                            awardList.setAwardName("波司登羽绒服");
+                            awardList.setAwardType(1);
+                            ajaxResult.setRetmsg("恭喜中一等奖，羽绒服");
+                        }
                     }else {
                         awardList.setAwardName("波司登优惠券");
                         awardList.setAwardType(2);

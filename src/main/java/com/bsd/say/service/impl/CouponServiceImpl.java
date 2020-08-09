@@ -192,7 +192,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                     //验证成功，领券
                     JSONObject request = new JSONObject();
                     request.put("mobileNo",phone);
-                    request.put("couponsGroupNo","Q00001326");
+                    request.put("couponsGroupNo","Q00004108");
                     String url = addCouponUrl + token;
                     try {
                         String result = HttpRequestUtils.sendPost(url,request);

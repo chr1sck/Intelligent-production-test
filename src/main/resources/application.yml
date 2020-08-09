@@ -42,6 +42,7 @@ server:
 
 award:
   rule: 5
+  amount: 2
 
 wechat:
   aesKey: r4cbRuIfbbnTIgJoQE33vJACJuoioZ5pRAhumITsP8O
@@ -59,7 +60,7 @@ bsd:
   tokenkey: BOSIDENG
   sendSource: BRAND_VERIFY_CODE
   verifySMSCodeUrl: http://vtest.bsd.cn/BSD_WXAPP/sysWeChat/verifySMSCode?token=
-  addCouponUrl: http://vtest.bsd.cn/BSD_WXAPP/miniProgram/addCoupon?token=
+  addCouponUrl: http://wxitf.bsd.cn/BSD_WXAPP/miniProgram/addCoupon?token=
 ### 上传文件路径
 #upload:
 #  excel:
