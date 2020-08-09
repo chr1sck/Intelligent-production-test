@@ -47,6 +47,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
     private RecordMapper recordMapper;
     @Autowired
     private AwardListMapper awardListMapper;
+    @Resource
+    private SourceMapper sourceMapper;
     @Override
     public CouponMapper getBaseMapper() {
         return this.couponMapper;
@@ -76,6 +78,34 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             String receiverName = data.getString("receiverName");
             Boolean isAward = data.getBoolean("isAward");
             String code = data.getString("code");
+            String qrCode = data.getString("qrCode");
+            String postCode = data.getString("postCode");
+            String sourceName;
+            if (StringUtils.isNotEmpty(qrCode)){
+                //二维码编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到二维码code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else if (StringUtils.isNotEmpty(postCode)){
+                //海报编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getPostCode,postCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到海报code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else {
+                sourceName = "";
+            }
             if (isAward){
                 //如果是抽奖领券,微信code为必填
                 if (StringUtils.isBlank(code)){
@@ -195,8 +225,17 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                                    if (StringUtils.isNotEmpty(users.getUnionId())){
+                                        Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,users.getUnionId())
+                                                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                                        record.setPhone(phone);
+                                        record.setIsHavaCoupon1("有");
+                                        record.setCreateDateTime(new Date());
+                                        recordMapper.updateById(record);
+                                    }
                                     Record record = new Record();
                                     record.setPhone(phone);
+                                    record.setSource(sourceName);
                                     record.setIsHavaCoupon1("有");
                                     record.setCreateDateTime(new Date());
                                     recordMapper.insert(record);
@@ -213,7 +252,6 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                         users.setUserType(1);
                                         usersMapper.updateById(users);
                                     }
-
                                     Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                                     record.setIsHavaCoupon1("有");

@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.Record;
+import com.bsd.say.entities.Source;
 import com.bsd.say.mapper.RecordMapper;
+import com.bsd.say.mapper.SourceMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.RecordService;
 import com.bsd.say.util.HttpRequestUtils;
@@ -26,6 +28,8 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
     private String getWxUserInfoUrl;
     @Resource
     private RecordMapper recordMapper;
+    @Resource
+    private SourceMapper sourceMapper;
 
     private Logger logger = LogUtils.getBussinessLogger();
 
@@ -54,6 +58,34 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
         }
         else {
             String code = data.getString("code");
+            String qrCode = data.getString("qrCode");
+            String postCode = data.getString("postCode");
+            String sourceName;
+            if (StringUtils.isNotEmpty(qrCode)){
+                //二维码编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到二维码code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else if (StringUtils.isNotEmpty(postCode)){
+                //海报编码
+                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getPostCode,postCode)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
+                if (source == null){
+                    ajaxResult.setRetmsg("未找到海报code的来源");
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    return ajaxResult;
+                }else {
+                    sourceName = source.getSourceName();
+                }
+            }else {
+                sourceName = "";
+            }
             if (StringUtils.isNotEmpty(code)){
                 //微信端
                 String unionId = weixinService.getUnionId(code);
@@ -66,6 +98,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                     String openId = weixin.getString("openid");
                     logger.info("open_id:"+openId);
                     Record newRecord = new Record();
+                    newRecord.setSource(sourceName);
                     newRecord.setOpenId(openId);
                     newRecord.setUnionId(unionId);
                     String accessToken = weixin.getString("access_token");
@@ -76,7 +109,6 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                     newRecord.setNickName(nickName);
                     newRecord.setCreateDateTime(new Date());
                     newRecord.setUpdateDateTime(new Date());
-                    newRecord.setSource("微信");
                     recordMapper.insert(newRecord);
                 }else {
                     //不是第一次访问
