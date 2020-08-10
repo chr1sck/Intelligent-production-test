@@ -77,10 +77,15 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             String noteCode = data.getString("noteCode");
             String receiverName = data.getString("receiverName");
             Boolean isAward = data.getBoolean("isAward");
-            String code = data.getString("code");
+//            String code = data.getString("code");
+            String openId = data.getString("openId");
             String qrCode = data.getString("qrCode");
             String postCode = data.getString("postCode");
             String sourceName;
+            JSONObject userInfo = new JSONObject();
+            if (StringUtils.isNotEmpty(openId)){
+                userInfo = weixinService.getUserInfoByOpenId(openId);
+            }
             if (StringUtils.isNotEmpty(qrCode)){
                 //二维码编码
                 Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
@@ -108,8 +113,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             }
             if (isAward){
                 //如果是抽奖领券,微信code为必填
-                if (StringUtils.isBlank(code)){
-                    ajaxResult.setRetmsg("CODE MISSING");
+                if (StringUtils.isBlank(openId)){
+                    ajaxResult.setRetmsg("openId MISSING");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
                 }
@@ -122,7 +127,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                 //先校验直接领券的
                 if (!isAward){
                     Users users;
-                    if (StringUtils.isBlank(code)){
+                    if (StringUtils.isBlank(openId)){
                         //来源H5
                         users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                 .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -147,7 +152,8 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         }
                     }else {
                         //来源微信
-                        String unionId = weixinService.getUnionId("code");
+                        String unionId = userInfo.getString("unionid");
+//                        String unionId = weixinService.getUnionId("code");
                         logger.info("union_id:"+unionId);
                         users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                 .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -160,6 +166,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 Users users1 = new Users();
                                 users1.setPhone(phone);
                                 users1.setUnionId(unionId);
+                                users1.setOpenId(openId);
                                 users1.setUserType(1);
                                 users1.setCreateDateTime(new Date());
                                 users1.setUpdateDateTime(new Date());
@@ -168,6 +175,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                         .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
                             }else{
                                 usersByPhone.setUnionId(unionId);
+                                usersByPhone.setOpenId(openId);
                                 usersByPhone.setUpdateDateTime(new Date());
                                 usersMapper.updateById(usersByPhone);
                                 coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,usersByPhone.getId())
@@ -201,7 +209,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             Coupon coupon = new Coupon();
                             Users users;
                             if (isAward){
-                                String unionId = weixinService.getUnionId(code);
+                                String unionId = userInfo.getString("unionid");
                                 logger.info("union_id:"+unionId);
                                 users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -222,7 +230,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 recordMapper.updateById(record);
                             }
                             else {
-                                if (StringUtils.isBlank(code)){
+                                if (StringUtils.isBlank(openId)){
                                     //来源H5
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -258,7 +266,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
 //                                    }
                                 }else {
                                     //来源微信
-                                    String unionId = weixinService.getUnionId(code);
+                                    String unionId = userInfo.getString("unionid");
                                     users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                     if (users.getUserType() == 2){
@@ -314,14 +322,16 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             return ajaxResult;
         }else {
 //            String phone = data.getString("phone");
-            String code = data.getString("code");
-            if (StringUtils.isEmpty(code)){
-                ajaxResult.setRetmsg("code MISSING");
+//            String code = data.getString("code");
+            String openId = data.getString("openId");
+            if (StringUtils.isEmpty(openId)){
+                ajaxResult.setRetmsg("openId MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
             }
 //            Boolean isWechat = true;
-            String unionId = weixinService.getUnionId(code);
+            JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+            String unionId = userInfo.getString("unionid");
             logger.info("union_id:"+unionId);
             Users users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                     .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));

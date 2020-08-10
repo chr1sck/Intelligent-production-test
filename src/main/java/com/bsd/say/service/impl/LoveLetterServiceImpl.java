@@ -64,7 +64,8 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             String sender_name = data.getString("sender_name");
             Integer love_type = data.getInteger("love_type");
             String receive_name = data.getString("receive_name");
-            String code = data.getString("code");
+            String openId = data.getString("openId");
+//            String code = data.getString("code");
             if (StringUtils.isBlank(content)){
                 ajaxResult.setRetmsg("CONTENT MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
@@ -91,9 +92,11 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 loveLetterMapper.insert(loveLetter);
                 ajaxResult.setData(letterId);
             }
-            if (StringUtils.isNotEmpty(code)){
+            if (StringUtils.isNotEmpty(openId)){
                 //来源于微信
-                String unionId = weixinService.getUnionId(code);
+                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                String unionId = userInfo.getString("unionid");
+//                String unionId = weixinService.getUnionId(code);
                 logger.info("union_id:"+unionId);
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
@@ -124,7 +127,8 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             ajaxResult.setRetcode(AjaxResult.FAILED);
             return ajaxResult;
         }else{
-            String code = data.getString("code");
+            String openId = data.getString("openId");
+//            String code = data.getString("code");
             String letterId = data.getString("letterId");
             String qrCode = data.getString("qrCode");
             String postCode = data.getString("postCode");
@@ -172,21 +176,23 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     ajaxResult.setData(loveLetter);
                 }
             }
-            if (StringUtils.isNotEmpty(code)){
+            if (StringUtils.isNotEmpty(openId)){
                 //来源于微信
-                String unionId = weixinService.getUnionId(code);
+                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                String unionId = userInfo.getString("unionid");
+//                String unionId = weixinService.getUnionId(code);
                 logger.info("union_id:"+unionId);
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //新用户第一次收到情书礼物
-                    JSONObject weixin = weixinService.getAccessToken(code);
-                    String openId = weixin.getString("openid");
-                    String accessToken = weixin.getString("access_token");
-                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
-                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
-                    JSONObject userJson = JSONObject.parseObject(userString);
-                    String nickName = userJson.getString("nickname");
+//                    JSONObject weixin = weixinService.getAccessToken(code);
+//                    String openId = weixin.getString("openid");
+//                    String accessToken = weixin.getString("access_token");
+//                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
+//                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
+//                    JSONObject userJson = JSONObject.parseObject(userString);
+                    String nickName = userInfo.getString("nickname");
                     Record record1 = new Record();
                     record1.setSource("微信");
                     record1.setUnionId(unionId);

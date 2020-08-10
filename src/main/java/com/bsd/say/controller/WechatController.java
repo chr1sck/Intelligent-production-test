@@ -133,7 +133,7 @@ public class WechatController {
     @RequestMapping("autologin")
     public AjaxResult autoLogin(@RequestParam String openId) throws IOException {
 
-
+        logger.info("请求openid:"+ openId);
         String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
 
         JSONObject result2 = JSONObject.parseObject(result1);

@@ -69,13 +69,15 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("DATA MISSING");
                 return ajaxResult;
             }else {
-                String code = data.getString("code");
-                if (StringUtils.isEmpty(code)){
+                String openId = data.getString("openId");
+//                String code = data.getString("code");
+                if (StringUtils.isEmpty(openId)){
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("CODE MISSING");
+                    ajaxResult.setRetmsg("openId MISSING");
                     return ajaxResult;
                 } else {
-                    String unionId = weixinService.getUnionId(code);
+                    JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                    String unionId = userInfo.getString("unionid");
                     logger.info("union_id:"+unionId);
                     Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -126,13 +128,15 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             ajaxResult.setRetmsg("DATA MISSING");
             return ajaxResult;
         }else {
-            String code = data.getString("code");
-            if (StringUtils.isEmpty(code)){
+//            String code = data.getString("code");
+            String openId = data.getString("openId");
+            if (StringUtils.isEmpty(openId)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
-                ajaxResult.setRetmsg("CODE MISSING");
+                ajaxResult.setRetmsg("openId MISSING");
                 return ajaxResult;
             } else {
-                String unionId = weixinService.getUnionId(code);
+                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                String unionId = userInfo.getString("unionid");
                 logger.info("union_id:"+unionId);
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -188,12 +192,13 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             ajaxResult.setRetmsg("DATA MISSING");
             return ajaxResult;
         }else{
-            String code = data.getString("code");
+//            String code = data.getString("code");
+            String openId = data.getString("openId");
             String phone = data.getString("phone");
             String noteCode = data.getString("noteCode");
             String address = data.getString("address");
             String receiverName = data.getString("receiverName");
-            if (StringUtils.isBlank(code)||StringUtils.isBlank(phone)
+            if (StringUtils.isBlank(openId)||StringUtils.isBlank(phone)
                     ||StringUtils.isBlank(noteCode)||StringUtils.isBlank(receiverName)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("PARAM MISSING");
@@ -201,7 +206,9 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             }else {
                 if (noteCode.equals(redisTemplate.opsForValue().get(phone))){
                     //验证成功
-                    String unionId = weixinService.getUnionId(code);
+                    JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                    String unionId = userInfo.getString("unionid");
+//                    String unionId = weixinService.getUnionId(openId);
                     logger.info("union_id:"+unionId);
                     Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
@@ -263,19 +270,20 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             ajaxResult.setRetmsg("DATA MISSING");
             return ajaxResult;
         }else{
-            String code = data.getString("code");
-            if (StringUtils.isBlank(code)){
+            String openId = data.getString("openId");
+//            String code = data.getString("code");
+            if (StringUtils.isBlank(openId)){
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("CODE MISSING");
                 return ajaxResult;
             }else {
-                String unionId = weixinService.getUnionId(code);
+                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                String unionId = userInfo.getString("unionid");
                 logger.info("union_id:"+unionId);
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
-                    ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("NOT FOUND USERS");
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
                     return ajaxResult;
                 }else {
                     Coupon coupon = couponMapper.selectOne(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())

@@ -57,7 +57,9 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
             return ajaxResult;
         }
         else {
-            String code = data.getString("code");
+            logger.info("ajaxRequestData:"+data.toString());
+            String openId = data.getString("openId");
+//            String code = data.getString("code");
             String qrCode = data.getString("qrCode");
             String postCode = data.getString("postCode");
             String sourceName;
@@ -86,26 +88,26 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
             }else {
                 sourceName = "";
             }
-            if (StringUtils.isNotEmpty(code)){
+            if (StringUtils.isNotEmpty(openId)){
                 //微信端
-                String unionId = weixinService.getUnionId(code);
+                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
+                logger.info("userInfo:"+userInfo.toString());
+                String unionId = userInfo.getString("unionid");
                 logger.info("union_id:"+unionId);
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //微信端新用户第一次访问
-                    JSONObject weixin = weixinService.getAccessToken(code);
-                    String openId = weixin.getString("openid");
                     logger.info("open_id:"+openId);
                     Record newRecord = new Record();
                     newRecord.setSource(sourceName);
                     newRecord.setOpenId(openId);
                     newRecord.setUnionId(unionId);
-                    String accessToken = weixin.getString("access_token");
-                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
-                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
-                    JSONObject userJson = JSONObject.parseObject(userString);
-                    String nickName = userJson.getString("nickname");
+//                    String accessToken = weixin.getString("access_token");
+//                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
+//                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
+//                    JSONObject userJson = JSONObject.parseObject(userString);
+                    String nickName = userInfo.getString("nickname");
                     newRecord.setNickName(nickName);
                     newRecord.setCreateDateTime(new Date());
                     newRecord.setUpdateDateTime(new Date());
