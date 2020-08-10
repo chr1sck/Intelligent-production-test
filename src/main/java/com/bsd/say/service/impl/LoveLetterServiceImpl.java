@@ -194,7 +194,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
 //                    JSONObject userJson = JSONObject.parseObject(userString);
                     String nickName = userInfo.getString("nickname");
                     Record record1 = new Record();
-                    record1.setSource("微信");
+                    record1.setSource(sourceName);
                     record1.setUnionId(unionId);
                     record1.setOpenId(openId);
                     record1.setNickName(nickName);
@@ -204,14 +204,13 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     record1.setSource(sourceName);
                     recordMapper.insert(record1);
                 }else {
-                    int receiveLetterTimes = record.getReceiveLetterTimes();
+                    Integer receiveLetterTimes = record.getReceiveLetterTimes();
                     record.setReceiveLetterTimes(receiveLetterTimes + 1);
                     record.setUpdateDateTime(new Date());
                     recordMapper.updateById(record);
                 }
             }else {
                 //非微信端待确认。。。
-
             }
         }
         return ajaxResult;

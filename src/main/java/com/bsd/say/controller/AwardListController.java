@@ -74,14 +74,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
     @ResponseBody
     public AjaxResult saveAward(@RequestBody AjaxRequest ajaxRequest){
         AjaxResult ajaxResult = new AjaxResult();
-        try {
-            ajaxResult = awardListService.saveAward(ajaxRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
-            ajaxResult.setRetcode(AjaxResult.FAILED);
-            ajaxResult.setRetmsg(errMsg);
-        }
+        ajaxResult = awardListService.saveAward(ajaxRequest);
         return ajaxResult;
     }
 
