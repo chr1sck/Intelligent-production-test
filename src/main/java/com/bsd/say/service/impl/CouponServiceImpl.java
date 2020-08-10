@@ -303,7 +303,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                     }
                 }else {
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("ERROR NOTECODE");
+                    ajaxResult.setRetmsg("验证码错误请重新填写");
                 }
                 return ajaxResult;
             }

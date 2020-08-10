@@ -92,42 +92,29 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
             if (StringUtils.isNotEmpty(openId)){
                 //微信端
                 JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
-                logger.info("userInfo:"+userInfo.toString());
+                logger.info("userInfo:" + userInfo.toString());
                 String unionId = userInfo.getString("unionid");
-                logger.info("union_id:"+unionId);
-                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-                if (record == null){
-                    //微信端新用户第一次访问
+                logger.info("union_id:" + unionId);
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId, openId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState, 1)));
+                //微信端新用户第一次访问
 
-                    logger.info("open_id:"+openId);
-                    Record newRecord = new Record();
-                    if (isOld){
-                        logger.info("老粉丝");
-                        newRecord.setFan("老粉丝");
-                    }else {
-                        newRecord.setFan("新粉丝");
-                    }
-                    newRecord.setSource(sourceName);
-                    newRecord.setOpenId(openId);
-                    newRecord.setUnionId(unionId);
+                logger.info("open_id:" + openId);
+                Record newRecord = new Record();
+                newRecord.setSource(sourceName);
+                newRecord.setUnionId(unionId);
 //                    String accessToken = weixin.getString("access_token");
 //                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
 //                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
 //                    JSONObject userJson = JSONObject.parseObject(userString);
-                    String nickName = userInfo.getString("nickname");
-                    newRecord.setNickName(nickName);
-                    newRecord.setCreateDateTime(new Date());
-                    newRecord.setUpdateDateTime(new Date());
-                    recordMapper.insert(newRecord);
-                }else {
-                    //不是第一次访问
-                    logger.info("unionId" + unionId);
-                    /**
-                     * 更新用户信息之类的
-                     */
-                }
-            }else {
+                String nickName = userInfo.getString("nickname");
+                newRecord.setNickName(nickName);
+                newRecord.setUpdateDateTime(new Date());
+                recordMapper.updateById(newRecord);
+                //不是第一次访问
+                logger.info("unionId" + unionId);
+            } else {
+                logger.info("非微信端访问");
                 //非微信端待确认
             }
         }
