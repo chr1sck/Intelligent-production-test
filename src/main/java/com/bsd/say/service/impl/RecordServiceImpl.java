@@ -98,21 +98,17 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                 Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId, openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState, 1)));
                 //微信端新用户第一次访问
-
                 logger.info("open_id:" + openId);
-                Record newRecord = new Record();
-                newRecord.setSource(sourceName);
-                newRecord.setUnionId(unionId);
+                record.setSource(sourceName);
+                record.setUnionId(unionId);
 //                    String accessToken = weixin.getString("access_token");
 //                    String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
 //                    String userString = HttpRequestUtils.sendGet(userInfoUrl);
 //                    JSONObject userJson = JSONObject.parseObject(userString);
                 String nickName = userInfo.getString("nickname");
-                newRecord.setNickName(nickName);
-                newRecord.setUpdateDateTime(new Date());
-                recordMapper.updateById(newRecord);
-                //不是第一次访问
-                logger.info("unionId" + unionId);
+                record.setNickName(nickName);
+                record.setUpdateDateTime(new Date());
+                recordMapper.updateById(record);
             } else {
                 logger.info("非微信端访问");
                 //非微信端待确认
