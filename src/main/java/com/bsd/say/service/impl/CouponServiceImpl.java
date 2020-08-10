@@ -154,41 +154,36 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                         //来源微信
                         String unionId = userInfo.getString("unionid");
 //                        String unionId = weixinService.getUnionId("code");
-                        logger.info("union_id:"+unionId);
-                        users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
-                                .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                        List<Coupon> coupons ;
-                        if (users == null){
-                            Users usersByPhone = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone,phone)
-                                    .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
-                            //防止先第三方领券，再微信端领券
-                            if (usersByPhone == null){
-                                Users users1 = new Users();
-                                users1.setPhone(phone);
-                                users1.setUnionId(unionId);
-                                users1.setOpenId(openId);
-                                users1.setUserType(1);
-                                users1.setCreateDateTime(new Date());
-                                users1.setUpdateDateTime(new Date());
-                                usersMapper.insert(users1);
-                                coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users1.getId())
-                                        .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
-                            }else{
-                                usersByPhone.setUnionId(unionId);
-                                usersByPhone.setOpenId(openId);
-                                usersByPhone.setUpdateDateTime(new Date());
-                                usersMapper.updateById(usersByPhone);
-                                coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,usersByPhone.getId())
-                                        .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                        logger.info("union_id:" + unionId);
+//                        users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+//                                .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
+                        List<Coupon> coupons;
 
-                            }
-                        }else {
-                            coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId,users.getId())
-                                    .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState,1)));
+                        Users usersByPhone = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getPhone, phone)
+                                .and(queryWrapper1 -> queryWrapper1.eq(Users::getState, 1)));
+                        //防止先第三方领券，再微信端领券
+                        if (usersByPhone == null) {
+                            Users users1 = new Users();
+                            users1.setPhone(phone);
+                            users1.setUnionId(unionId);
+                            users1.setOpenId(openId);
+                            users1.setUserType(1);
+                            users1.setCreateDateTime(new Date());
+                            users1.setUpdateDateTime(new Date());
+                            usersMapper.insert(users1);
+                            coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId, users1.getId())
+                                    .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState, 1)));
+                        } else {
+                            usersByPhone.setUnionId(unionId);
+                            usersByPhone.setOpenId(openId);
+                            usersByPhone.setUpdateDateTime(new Date());
+                            usersMapper.updateById(usersByPhone);
+                            coupons = couponMapper.selectList(Wrappers.<Coupon>lambdaQuery().eq(Coupon::getUserId, usersByPhone.getId())
+                                    .and(queryWrapper1 -> queryWrapper1.eq(Coupon::getState, 1)));
                         }
                         //防非法请求,再校验一遍
-                        if (coupons.size() > 0){
-                            ajaxResult.setRetmsg("非法请求，您已经领过优惠券");
+                        if (coupons.size() > 0) {
+                            ajaxResult.setRetmsg("您已经领过优惠券");
                             ajaxResult.setRetcode(AjaxResult.FAILED);
                             ajaxResult.setData(false);
                             return ajaxResult;
