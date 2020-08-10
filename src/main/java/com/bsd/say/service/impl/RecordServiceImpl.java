@@ -58,7 +58,6 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
         }
         else {
             logger.info("ajaxRequestData:"+data.toString());
-            Boolean isOld = data.getBoolean("isOld");
             String openId = data.getString("openId");
 //            String code = data.getString("code");
             String qrCode = data.getString("qrCode");

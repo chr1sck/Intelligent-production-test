@@ -98,7 +98,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 String unionId = userInfo.getString("unionid");
 //                String unionId = weixinService.getUnionId(code);
                 logger.info("union_id:"+unionId);
-                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 int createLetterTimes = record.getCreateLetterTimes();
                 record.setCreateLetterTimes(createLetterTimes + 1);
@@ -182,7 +182,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 String unionId = userInfo.getString("unionid");
 //                String unionId = weixinService.getUnionId(code);
                 logger.info("union_id:"+unionId);
-                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //新用户第一次收到情书礼物

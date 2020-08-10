@@ -223,7 +223,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                 awardList.setUpdateDateTime(new Date());
                                 awardListMapper.updateById(awardList);
                                 //统计领取二等奖
-                                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                                 record.setIsHavaCoupon2("有");
                                 record.setUpdateDateTime(new Date());
@@ -278,7 +278,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                                         users.setUserType(1);
                                         usersMapper.updateById(users);
                                     }
-                                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
                                             .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                                     record.setIsHavaCoupon1("有");
                                     record.setName(receiverName);

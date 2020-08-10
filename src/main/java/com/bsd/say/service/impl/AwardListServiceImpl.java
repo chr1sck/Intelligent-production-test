@@ -238,7 +238,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
 
                     //抽中一等奖，必定微信来源
-                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getUnionId,unionId)
+                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
                             .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                     record.setIsAward("中奖");
                     record.setAwardName(receiverName);
