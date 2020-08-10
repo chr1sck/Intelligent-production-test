@@ -58,6 +58,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
         }
         else {
             logger.info("ajaxRequestData:"+data.toString());
+            Boolean isOld = data.getBoolean("isOld");
             String openId = data.getString("openId");
 //            String code = data.getString("code");
             String qrCode = data.getString("qrCode");
@@ -98,8 +99,15 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                         .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                 if (record == null){
                     //微信端新用户第一次访问
+
                     logger.info("open_id:"+openId);
                     Record newRecord = new Record();
+                    if (isOld){
+                        logger.info("老粉丝");
+                        newRecord.setFan("老粉丝");
+                    }else {
+                        newRecord.setFan("新粉丝");
+                    }
                     newRecord.setSource(sourceName);
                     newRecord.setOpenId(openId);
                     newRecord.setUnionId(unionId);
