@@ -1,16 +1,16 @@
 package com.bsd.say.controller;
 
-import com.bsd.say.config.RedisProperies;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.service.impl.WeixinService;
+import com.bsd.say.util.AESWithJCEUtils;
+import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
-import com.bsd.say.util.Xml2MapUtil;
 import com.bsd.say.util.wechat.AesException;
-import com.bsd.say.util.wechat.WXBizMsgCrypt;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.open.bean.message.WxOpenXmlMessage;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.slf4j.Logger;
@@ -18,21 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
-import java.util.Map;
 
 @RestController
 @RequestMapping("wechat")
@@ -134,9 +125,28 @@ public class WechatController {
     }
 
     @RequestMapping("test")
-    public void test(){
+    public void test() {
 //        Object o = redisTemplate.opsForValue().getOperations();
         weixinService.refreshComponentAccessToken();
     }
+
+    @RequestMapping("autologin")
+    public AjaxResult autoLogin(@RequestParam String openId) throws IOException {
+
+
+        String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
+
+        JSONObject result2 = JSONObject.parseObject(result1);
+        String result3 = result2.getString("access_token");
+        String pubkey = "1234567890123456";
+        String iv = "WJi7HTZQoh8eHjup";
+        String decode = AESWithJCEUtils.aesDecode(result3, pubkey, iv);
+        String resutl = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + decode + "&openid=" + openId + "&lang=zh_CN");
+        JSONObject jsonObject = JSONObject.parseObject(resutl);
+        AjaxResult ajaxResult =  new AjaxResult();
+        ajaxResult.setData(jsonObject);
+        return ajaxResult;
+    }
+
 
 }
