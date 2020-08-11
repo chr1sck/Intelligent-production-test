@@ -280,7 +280,7 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
                 String unionId = userInfo.getString("unionid");
                 logger.info("union_id:"+unionId);
-                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId,openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);

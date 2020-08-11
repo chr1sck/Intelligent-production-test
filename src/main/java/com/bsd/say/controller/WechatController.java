@@ -151,34 +151,7 @@ public class WechatController {
         String resutl = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + decode + "&openid=" + openId + "&lang=zh_CN");
         JSONObject jsonObject = JSONObject.parseObject(resutl);
         Integer subscribe = jsonObject.getInteger("subscribe");
-        logger.info("subscribe："+ subscribe);
-        Record recordByOpenId = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
-                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-        if (subscribe == 0){
-            //未关注公众号
-            if (recordByOpenId == null){
-                logger.info("新粉丝第一次进入");
-                Record record = new Record();
-                record.setOpenId(openId);
-                record.setFan("新粉丝");
-                record.setCreateDateTime(new Date());
-                recordMapper.insert(record);
-            }else {
-                logger.info("游客访问过，但未关注");
-            }
-        }else {
-            //关注过公众号
-            if (recordByOpenId == null){
-                logger.info("老粉丝第一次进入");
-                Record record = new Record();
-                record.setOpenId(openId);
-                record.setFan("老粉丝");
-                record.setCreateDateTime(new Date());
-                recordMapper.insert(record);
-            }else {
-                logger.info("老粉丝访问过,已关注");
-            }
-        }
+        weixinService.insertRecord(openId,subscribe);
         AjaxResult ajaxResult =  new AjaxResult();
         ajaxResult.setData(jsonObject);
         return ajaxResult;
