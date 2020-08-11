@@ -206,7 +206,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             if (isAward){
                                 String unionId = userInfo.getString("unionid");
                                 logger.info("union_id:"+unionId);
-                                users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+                                users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId,openId)
                                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                                 users.setPhone(phone);
                                 users.setUpdateDateTime(new Date());
@@ -331,7 +331,7 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
             JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
             String unionId = userInfo.getString("unionid");
             logger.info("union_id:"+unionId);
-            Users users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getUnionId,unionId)
+            Users users= usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId,openId)
                     .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
             if (users == null){
                 ajaxResult.setRetmsg("可以领取优惠券");
