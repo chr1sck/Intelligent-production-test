@@ -291,14 +291,14 @@ public class CouponServiceImpl extends BaseServiceImpl<CouponMapper, Coupon> imp
                             }
                         }else {
                             ajaxResult.setRetcode(AjaxResult.FAILED);
-                            ajaxResult.setRetmsg(resultJson.getString("errorMessage"));
+                            ajaxResult.setRetmsg(resultJson.getString("领取失败"));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }else {
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("验证码错误请重新填写");
+                    ajaxResult.setRetmsg("验证码错误或已超时，请重新填写");
                 }
                 return ajaxResult;
             }

@@ -248,9 +248,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     recordMapper.updateById(record);
                 }else {
                     //短信验证失败
-                    ajaxResult.setRetmsg("FAIL");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("TIME OUT OR ERROR");
+                    ajaxResult.setRetmsg("验证码错误或已超时，请重新填写");
                 }
             }
         }
