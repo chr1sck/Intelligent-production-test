@@ -1,13 +1,17 @@
 package com.bsd.say.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
+import com.bsd.say.entities.Record;
 import com.bsd.say.entities.Users;
+import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.UsersService;
 import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.MD5Utils;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +42,8 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
     protected UsersMapper usersMapper;
     @Autowired
     private WeixinService weixinService;
+    @Resource
+    private RecordMapper recordMapper;
 
     @Override
     public UsersMapper getBaseMapper() {
@@ -117,6 +123,40 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
                 return ajaxResult;
             }
         }
+    }
+
+    /**
+     * 通过openId获取record中的name 和 phone
+     * @param ajaxRequest
+     * @return
+     */
+    @Override
+    public AjaxResult getUserInfoByOpenId(AjaxRequest ajaxRequest) {
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg("data missing");
+            return ajaxResult;
+        }else {
+            String openId = data.getString("openId");
+            if (StringUtils.isBlank(openId)){
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                ajaxResult.setRetmsg("openId missing");
+                return ajaxResult;
+            }else {
+                JSONObject userInfo = new JSONObject();
+                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                if (record != null){
+                    userInfo.put("name",record.getName());
+                    userInfo.put("phone",record.getPhone());
+                }
+                ajaxResult.setData(userInfo);
+                ajaxResult.setRetcode(AjaxResult.SUCCESS);
+            }
+        }
+        return ajaxResult;
     }
 
 }

@@ -76,4 +76,19 @@ public class UsersController extends BaseController<UsersService, Users>{
         return ajaxResult;
     }
 
+    @RequestMapping(value = "/get-info")
+    @ResponseBody
+    public AjaxResult getUserInfoByOpenId(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        try {
+            ajaxResult = usersService.getUserInfoByOpenId(ajaxRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
+        }
+        return ajaxResult;
+    }
+
 }
