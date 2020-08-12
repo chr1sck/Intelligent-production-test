@@ -8,10 +8,10 @@ import com.bsd.say.entities.Record;
 import com.bsd.say.entities.Users;
 import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
+import com.bsd.say.service.RedisService;
 import com.bsd.say.service.UsersService;
 import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.MD5Utils;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 @Service("usersService")
 @Transactional
-public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> implements UsersService {
+public class UsersServiceImpl extends BaseServiceImpl<UsersMapper, Users> implements UsersService {
+
+
     @Resource
     private RedisTemplate redisTemplate;
     @Value("${bsd.tokenkey}")
@@ -44,6 +46,10 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
     private WeixinService weixinService;
     @Resource
     private RecordMapper recordMapper;
+    @Resource
+    private RedisService redisService;
+    static final String RECORD_PREFIX = "BSD_RECORD_";
+
 
     @Override
     public UsersMapper getBaseMapper() {
@@ -52,6 +58,7 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
 
     /**
      * 发送验证码
+     *
      * @param ajaxRequest
      * @return
      */
@@ -60,30 +67,30 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
-        if (data == null){
+        if (data == null) {
             ajaxResult.setRetmsg("DATA MISSING");
             ajaxResult.setRetcode(AjaxResult.FAILED);
             return ajaxResult;
-        }else {
+        } else {
             String phone = data.getString("phone");
-            if (StringUtils.isEmpty(phone)){
+            if (StringUtils.isEmpty(phone)) {
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("PHONE MISSING");
                 return ajaxResult;
-            }else {
+            } else {
                 int radomInt = new Random().nextInt(999999);
                 String noteCode = String.valueOf(radomInt);
                 String token = MD5Utils.md5(tokenkey + df.format(new Date()));
                 String param = "&mobileNo=" + phone + "&verifyCode=" + noteCode + "&sendSource=" + sendSource;
-                String result = HttpRequestUtils.sendGet(verifySMSCodeUrl+token+param);
+                String result = HttpRequestUtils.sendGet(verifySMSCodeUrl + token + param);
                 JSONObject resultJson = JSONObject.parseObject(result);
-                if (resultJson.getBoolean("success")){
-                    redisTemplate.opsForValue().set(phone,noteCode,60, TimeUnit.SECONDS);
+                if (resultJson.getBoolean("success")) {
+                    redisTemplate.opsForValue().set(phone, noteCode, 60, TimeUnit.SECONDS);
                     ajaxResult.setRetmsg("SUCCESS");
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
                     ajaxResult.setData(noteCode);
                     return ajaxResult;
-                }else {
+                } else {
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     ajaxResult.setRetmsg("SEND ERROR");
                     return ajaxResult;
@@ -96,27 +103,27 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
     public AjaxResult isSubscribe(AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
-        if (data == null){
+        if (data == null) {
             ajaxResult.setRetmsg("DATA MISSING");
             ajaxResult.setRetcode(AjaxResult.FAILED);
             return ajaxResult;
-        }else {
+        } else {
             String code = data.getString("code");
-            if (StringUtils.isEmpty(code)){
+            if (StringUtils.isEmpty(code)) {
                 ajaxResult.setRetmsg("CODE MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 return ajaxResult;
-            }else {
+            } else {
                 JSONObject weixin = weixinService.getAccessToken(code);
                 String openId = weixin.getString("openid");
                 String accessToken = weixin.getString("access_token");
-                String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN" ;
+                String userInfoUrl = getWxUserInfoUrl + accessToken + "&openid=" + openId + "&lang=zh_CN";
                 JSONObject userinfo = JSONObject.parseObject(HttpRequestUtils.sendGet(userInfoUrl));
                 int subscribe = userinfo.getInteger("subscribe");
-                if (subscribe == 1){
+                if (subscribe == 1) {
                     ajaxResult.setData(1);
                     ajaxResult.setRetmsg("已关注公众号");
-                }else {
+                } else {
                     ajaxResult.setData(0);
                     ajaxResult.setRetmsg("未关注公众号");
                 }
@@ -127,33 +134,44 @@ public class UsersServiceImpl extends BaseServiceImpl<UsersMapper,Users> impleme
 
     /**
      * 通过openId获取record中的name 和 phone
+     *
      * @param ajaxRequest
      * @return
      */
     @Override
     public AjaxResult getUserInfoByOpenId(AjaxRequest ajaxRequest) {
+
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
-        if (data == null){
+        if (data == null) {
             ajaxResult.setRetcode(AjaxResult.FAILED);
             ajaxResult.setRetmsg("data missing");
             return ajaxResult;
-        }else {
+        } else {
             String openId = data.getString("openId");
-            if (StringUtils.isBlank(openId)){
-                ajaxResult.setRetcode(AjaxResult.FAILED);
-                ajaxResult.setRetmsg("openId missing");
-                return ajaxResult;
-            }else {
-                JSONObject userInfo = new JSONObject();
-                Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-                if (record != null){
-                    userInfo.put("name",record.getName());
-                    userInfo.put("phone",record.getPhone());
-                }
-                ajaxResult.setData(userInfo);
+            if (redisService.exists(RECORD_PREFIX + openId)) {
+
+                String userInfoStr = redisService.get(RECORD_PREFIX + openId).toString();
+                ajaxResult.setData(JSONObject.parseObject(userInfoStr));
                 ajaxResult.setRetcode(AjaxResult.SUCCESS);
+            } else {
+
+                if (StringUtils.isBlank(openId)) {
+                    ajaxResult.setRetcode(AjaxResult.FAILED);
+                    ajaxResult.setRetmsg("openId missing");
+                    return ajaxResult;
+                } else {
+                    JSONObject userInfo = new JSONObject();
+                    Record record = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId, openId)
+                            .and(queryWrapper1 -> queryWrapper1.eq(Record::getState, 1)));
+                    if (record != null) {
+                        userInfo.put("name", record.getName());
+                        userInfo.put("phone", record.getPhone());
+                    }
+                    redisService.set(RECORD_PREFIX + openId, userInfo.toJSONString());
+                    ajaxResult.setData(userInfo);
+                    ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                }
             }
         }
         return ajaxResult;

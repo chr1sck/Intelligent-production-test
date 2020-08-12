@@ -135,16 +135,13 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 ajaxResult.setRetmsg("openId MISSING");
                 return ajaxResult;
             } else {
-                JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
-//                String unionId = userInfo.getString("unionid");
-//                logger.info("union_id:"+unionId);
+
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId,openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState,1)));
                 if (users == null){
                     //新会员直接创，肯定没抽过奖
                     Users newUsers = new Users();
                     newUsers.setOpenId(openId);
-//                    newUsers.setUnionId(unionId);
                     newUsers.setUserType(2);
                     newUsers.setCreateDateTime(new Date());
                     newUsers.setUpdateDateTime(new Date());
