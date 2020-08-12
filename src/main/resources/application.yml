@@ -54,6 +54,7 @@ wechat:
   getAccessTokenUrl: https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=
   getUnionIdUrl: https://api.weixin.qq.com/sns/userinfo?access_token=
   getWxUserInfoUrl: https://api.weixin.qq.com/cgi-bin/user/info?access_token=
+  getTicketUrl: https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=
 
 
 bsd:

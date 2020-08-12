@@ -44,6 +44,8 @@ public class WeixinService  extends WxOpenServiceImpl {
     private String getUnionIdUrl;
     @Value("${wechat.getWxUserInfoUrl}")
     private String getWxUserInfoUrl;
+    @Value("${wechat.getTicketUrl}")
+    private String getTicketUrl;
     @Resource
     private RedisTemplate redisTemplate;
 
@@ -140,4 +142,19 @@ public class WeixinService  extends WxOpenServiceImpl {
         logger.info("userInfo:"+ jsonObject.toString());
         return jsonObject;
     }
+
+    /**
+     * 通过accessToken刷新ticket
+     */
+    public void getTicket(){
+        String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
+        JSONObject result2 = JSONObject.parseObject(result1);
+        String access_token = result2.getString("access_token");
+        String getTicketNewUrl = getTicketUrl + access_token + "&type=jsapi";
+        String ticketResult = HttpRequestUtils.sendGet(getTicketNewUrl);
+        JSONObject ticketJson = JSONObject.parseObject(ticketResult);
+        String jsapi_ticket = ticketJson.getString("ticket");
+        redisTemplate.opsForValue().set("jsapi_ticket",jsapi_ticket);
+    }
+
 }
