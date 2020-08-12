@@ -238,7 +238,7 @@ public class WeixinService extends WxOpenServiceImpl {
         return jsonObject;
     }
 
-    private String fetchAccessToken() {
+    public String fetchAccessToken() {
 
         String access_token = "";
         //从cache中获取
