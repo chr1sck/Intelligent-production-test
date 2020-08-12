@@ -9,7 +9,7 @@ public class LoveLetter extends BaseEntity{
     /**
      * 用户id(谁写的爱意情书)
      */
-    private Long userId;
+    private String openId;
 
     /**
      * 情书类型
