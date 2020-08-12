@@ -40,4 +40,9 @@ public class LoveLetter extends BaseEntity{
      * 信的唯一Id
      */
     private String letterId;
+
+    /**
+     * 读信数
+     */
+    private int readTimes;
 }

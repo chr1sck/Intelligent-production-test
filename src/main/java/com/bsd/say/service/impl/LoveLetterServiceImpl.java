@@ -171,6 +171,10 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
                 }else {
+                    int readTimes = loveLetter.getReadTimes();
+                    loveLetter.setReadTimes(readTimes + 1);
+                    loveLetter.setUpdateDateTime(new Date());
+                    loveLetterMapper.updateById(loveLetter);
                     ajaxResult.setRetmsg("SUCCESS");
                     ajaxResult.setRetcode(AjaxResult.SUCCESS);
                     ajaxResult.setData(loveLetter);
