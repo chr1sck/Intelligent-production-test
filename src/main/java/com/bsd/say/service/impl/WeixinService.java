@@ -7,6 +7,7 @@ import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.util.AESWithJCEUtils;
 import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
+import com.bsd.say.util.wechat.Sign;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.chanjar.weixin.open.api.impl.WxOpenInRedisConfigStorage;
 import me.chanjar.weixin.open.api.impl.WxOpenMessageRouter;
@@ -146,7 +147,7 @@ public class WeixinService  extends WxOpenServiceImpl {
     /**
      * 通过accessToken刷新ticket
      */
-    public void getTicket(){
+    public String getTicket(){
         String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
         JSONObject result2 = JSONObject.parseObject(result1);
         String access_token = result2.getString("access_token");
@@ -154,7 +155,16 @@ public class WeixinService  extends WxOpenServiceImpl {
         String ticketResult = HttpRequestUtils.sendGet(getTicketNewUrl);
         JSONObject ticketJson = JSONObject.parseObject(ticketResult);
         String jsapi_ticket = ticketJson.getString("ticket");
-        redisTemplate.opsForValue().set("jsapi_ticket",jsapi_ticket);
+//        redisTemplate.opsForValue().set("jsapi_ticket",jsapi_ticket);
+        return jsapi_ticket;
     }
 
+    public Map<String,String> getSign(String url){
+        String jsapiTicket = getTicket();
+        logger.info("jsapiTicket:"+ jsapiTicket);
+        Map<String,String> sign = Sign.sign(jsapiTicket,url);
+        sign.put("appId",appId);
+        logger.info("sign:" + sign);
+        return sign;
+    }
 }

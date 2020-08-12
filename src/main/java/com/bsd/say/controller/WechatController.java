@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.api.R;
+import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.Record;
 import com.bsd.say.mapper.RecordMapper;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.Map;
 
 @RestController
 @RequestMapping("wechat")
@@ -184,4 +186,27 @@ public class WechatController {
         return ajaxResult;
     }
 
+    @RequestMapping("get-sign")
+    public AjaxResult getSign(@RequestBody AjaxRequest ajaxRequest){
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null){
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg("data missing");
+            return ajaxResult;
+        }else {
+            String url = data.getString("url");
+            if (StringUtils.isEmpty(url)){
+                ajaxResult.setRetcode(AjaxResult.FAILED);
+                ajaxResult.setRetmsg("url missing");
+                return ajaxResult;
+            }else {
+                Map<String,String> sign = weixinService.getSign(url);
+                ajaxResult.setRetmsg("SUCCESS");
+                ajaxResult.setRetcode(AjaxResult.SUCCESS);
+                ajaxResult.setData(sign);
+            }
+        }
+        return ajaxResult;
+    }
 }
