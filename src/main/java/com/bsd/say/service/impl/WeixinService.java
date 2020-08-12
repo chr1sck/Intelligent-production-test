@@ -160,9 +160,7 @@ public class WeixinService extends WxOpenServiceImpl {
      * 通过accessToken刷新ticket
      */
     public String getTicket() {
-        String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
-        JSONObject result2 = JSONObject.parseObject(result1);
-        String access_token = result2.getString("access_token");
+        String access_token = fetchAccessToken();
         String getTicketNewUrl = getTicketUrl + access_token + "&type=jsapi";
         String ticketResult = HttpRequestUtils.sendGet(getTicketNewUrl);
         JSONObject ticketJson = JSONObject.parseObject(ticketResult);

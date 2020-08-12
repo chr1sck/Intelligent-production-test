@@ -44,4 +44,6 @@ public class Record extends BaseEntity{
 
     private String address;//领取一等奖地址
 
+    private String letterOpenId;
+
 }
