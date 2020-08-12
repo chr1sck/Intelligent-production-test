@@ -1,0 +1,177 @@
+{
+  "groups": [
+    {
+      "name": "wechat.redis",
+      "type": "com.bsd.say.config.RedisProperies",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    }
+  ],
+  "properties": [
+    {
+      "name": "wechat.redis.block-when-exhausted",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.client-name",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.connection-timeout",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.database",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies",
+      "defaultValue": 4
+    },
+    {
+      "name": "wechat.redis.eviction-policy",
+      "type": "org.apache.commons.pool2.impl.EvictionPolicy<T>",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.eviction-policy-class-name",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.evictor-shutdown-timeout-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.fairness",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.host",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies",
+      "defaultValue": "111.229.204.101"
+    },
+    {
+      "name": "wechat.redis.hostname-verifier",
+      "type": "javax.net.ssl.HostnameVerifier",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.jmx-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.jmx-name-base",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.jmx-name-prefix",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.lifo",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.max-idle",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.max-total",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.max-wait-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.min-evictable-idle-time-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.min-idle",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.num-tests-per-eviction-run",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.password",
+      "type": "java.lang.String",
+      "sourceType": "com.bsd.say.config.RedisProperies",
+      "defaultValue": "1qaz2wsx"
+    },
+    {
+      "name": "wechat.redis.port",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies",
+      "defaultValue": 63790
+    },
+    {
+      "name": "wechat.redis.so-timeout",
+      "type": "java.lang.Integer",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.soft-min-evictable-idle-time-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.ssl",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies",
+      "defaultValue": false
+    },
+    {
+      "name": "wechat.redis.ssl-parameters",
+      "type": "javax.net.ssl.SSLParameters",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.ssl-socket-factory",
+      "type": "javax.net.ssl.SSLSocketFactory",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.test-on-borrow",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.test-on-create",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.test-on-return",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.test-while-idle",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    },
+    {
+      "name": "wechat.redis.time-between-eviction-runs-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.bsd.say.config.RedisProperies"
+    }
+  ],
+  "hints": []
+}

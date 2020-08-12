@@ -1,17 +1,11 @@
 package com.bsd.say.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.api.R;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
-import com.bsd.say.entities.Record;
 import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.service.impl.WeixinService;
-import com.bsd.say.util.AESWithJCEUtils;
-import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
 import com.bsd.say.util.wechat.AesException;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -29,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.Map;
 
 @RestController
@@ -139,42 +132,53 @@ public class WechatController {
         weixinService.refreshComponentAccessToken();
     }
 
+//    @RequestMapping("autologin")
+//    public AjaxResult autoLogin(@RequestParam String openId) throws IOException {
+//
+//        logger.info("请求openid:"+ openId);
+//        String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
+//
+//        JSONObject result2 = JSONObject.parseObject(result1);
+//        String result3 = result2.getString("access_token");
+//        String pubkey = "1234567890123456";
+//        String iv = "WJi7HTZQoh8eHjup";
+//        String decode = AESWithJCEUtils.aesDecode(result3, pubkey, iv);
+//        String resutl = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + decode + "&openid=" + openId + "&lang=zh_CN");
+//        JSONObject jsonObject = JSONObject.parseObject(resutl);
+//        Integer subscribe = jsonObject.getInteger("subscribe");
+//        weixinService.insertRecord(openId,subscribe);
+//        AjaxResult ajaxResult =  new AjaxResult();
+//        ajaxResult.setData(jsonObject);
+//        return ajaxResult;
+//    }
+
+
     @RequestMapping("autologin")
     public AjaxResult autoLogin(@RequestParam String openId) throws IOException {
 
-        logger.info("请求openid:"+ openId);
-        String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
-
-        JSONObject result2 = JSONObject.parseObject(result1);
-        String result3 = result2.getString("access_token");
-        String pubkey = "1234567890123456";
-        String iv = "WJi7HTZQoh8eHjup";
-        String decode = AESWithJCEUtils.aesDecode(result3, pubkey, iv);
-        String resutl = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + decode + "&openid=" + openId + "&lang=zh_CN");
-        JSONObject jsonObject = JSONObject.parseObject(resutl);
-        Integer subscribe = jsonObject.getInteger("subscribe");
-        weixinService.insertRecord(openId,subscribe);
-        AjaxResult ajaxResult =  new AjaxResult();
+        logger.info("请求openid:" + openId);
+        JSONObject jsonObject = weixinService.autoLogin(openId);
+        AjaxResult ajaxResult = new AjaxResult();
         ajaxResult.setData(jsonObject);
         return ajaxResult;
     }
 
     @RequestMapping("get-sign")
-    public AjaxResult getSign(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult getSign(@RequestBody AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         JSONObject data = ajaxRequest.getData();
-        if (data == null){
+        if (data == null) {
             ajaxResult.setRetcode(AjaxResult.FAILED);
             ajaxResult.setRetmsg("data missing");
             return ajaxResult;
-        }else {
+        } else {
             String url = data.getString("url");
-            if (StringUtils.isEmpty(url)){
+            if (StringUtils.isEmpty(url)) {
                 ajaxResult.setRetcode(AjaxResult.FAILED);
                 ajaxResult.setRetmsg("url missing");
                 return ajaxResult;
-            }else {
-                Map<String,String> sign = weixinService.getSign(url);
+            } else {
+                Map<String, String> sign = weixinService.getSign(url);
                 ajaxResult.setRetmsg("SUCCESS");
                 ajaxResult.setRetcode(AjaxResult.SUCCESS);
                 ajaxResult.setData(sign);

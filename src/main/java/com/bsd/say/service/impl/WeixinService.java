@@ -6,12 +6,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.config.RedisProperies;
 import com.bsd.say.entities.Record;
 import com.bsd.say.mapper.RecordMapper;
-import com.bsd.say.service.WxOpenServiceDemo;
+import com.bsd.say.service.RedisService;
 import com.bsd.say.util.AESWithJCEUtils;
 import com.bsd.say.util.HttpRequestUtils;
 import com.bsd.say.util.LogUtils;
 import com.bsd.say.util.wechat.Sign;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import me.chanjar.weixin.open.api.impl.WxOpenInRedisConfigStorage;
 import me.chanjar.weixin.open.api.impl.WxOpenMessageRouter;
 import me.chanjar.weixin.open.api.impl.WxOpenServiceImpl;
@@ -20,10 +19,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.JedisPool;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,7 +28,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class WeixinService  extends WxOpenServiceImpl {
+public class WeixinService extends WxOpenServiceImpl {
+
+
     @Value("${wechat.aesKey}")
     private String aesKey;
     @Value("${wechat.componentToken}")
@@ -56,22 +55,27 @@ public class WeixinService  extends WxOpenServiceImpl {
     private RedisTemplate redisTemplate;
     @Resource
     private RecordMapper recordMapper;
-
     private WxOpenMessageRouter wxOpenMessageRouter;
+
+    @Resource
+    private RedisService redisService;
+
+
     Logger logger = LogUtils.getBussinessLogger();
+
     /**
      * 刷新第三方accessToken
      */
 
-    public void refreshComponentAccessToken(){
+    public void refreshComponentAccessToken() {
         RedisProperies redisProperies = new RedisProperies();
         JedisPool pool =
-                    new JedisPool(redisProperies, redisProperies.getHost(),
-                            redisProperies.getPort(), redisProperies.getConnectionTimeout(),
-                            redisProperies.getSoTimeout(), redisProperies.getPassword(),
-                            redisProperies.getDatabase(), redisProperies.getClientName(),
-                            redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
-                            redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
+                new JedisPool(redisProperies, redisProperies.getHost(),
+                        redisProperies.getPort(), redisProperies.getConnectionTimeout(),
+                        redisProperies.getSoTimeout(), redisProperies.getPassword(),
+                        redisProperies.getDatabase(), redisProperies.getClientName(),
+                        redisProperies.isSsl(), redisProperies.getSslSocketFactory(),
+                        redisProperies.getSslParameters(), redisProperies.getHostnameVerifier());
         try {
             WxOpenInRedisConfigStorage inRedisConfigStorage = new WxOpenInRedisConfigStorage(pool);
             inRedisConfigStorage.setComponentAppId(componentAppId);
@@ -81,19 +85,19 @@ public class WeixinService  extends WxOpenServiceImpl {
             setWxOpenConfigStorage(inRedisConfigStorage);
             wxOpenMessageRouter = new WxOpenMessageRouter(this);
             String ComponentVerifyTicket = inRedisConfigStorage.getComponentVerifyTicket();
-            logger.info("ComponentVerifyTicket："+ComponentVerifyTicket);
+            logger.info("ComponentVerifyTicket：" + ComponentVerifyTicket);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("component_appid", componentAppId);
             jsonObject.put("component_appsecret", componentAppSecret);
             jsonObject.put("component_verify_ticket", ComponentVerifyTicket);
-            String post = HttpRequestUtils.sendPost(getComponentAccessTokenUrl,jsonObject);
+            String post = HttpRequestUtils.sendPost(getComponentAccessTokenUrl, jsonObject);
 //            logger.debug("====================返回post结果：" + post);
             HashMap<String, String> hashMap = JSON.parseObject(post, HashMap.class);
             String componentAccessToken = hashMap.get("component_access_token");
             if (StringUtils.isNotEmpty(componentAccessToken)) {
                 redisTemplate.opsForValue().set("component_access_token", componentAccessToken, 60 * 60 * 2, TimeUnit.SECONDS);
                 String accessToken = redisTemplate.opsForValue().get("component_access_token").toString();
-                System.out.println("accessToken"+accessToken);
+                System.out.println("accessToken" + accessToken);
 //                logger.debug("====================令牌component_access_token】：【" + accessToken + "】====================");
             } else {
                 throw new RuntimeException("微信开放平台，第三方平台获取【令牌】失败");
@@ -105,10 +109,11 @@ public class WeixinService  extends WxOpenServiceImpl {
 
     /**
      * 获取accessToken
+     *
      * @return
      */
-    public JSONObject getAccessToken(String code){
-        String component_access_token =  redisTemplate.opsForValue().get("component_access_token").toString();
+    public JSONObject getAccessToken(String code) {
+        String component_access_token = redisTemplate.opsForValue().get("component_access_token").toString();
         String param = appId + "&code=" + code + "&grant_type=authorization_code&component_appid=" + componentAppId
                 + "&component_access_token=" + component_access_token;
         String url = getAccessTokenUrl + param;
@@ -119,10 +124,11 @@ public class WeixinService  extends WxOpenServiceImpl {
 
     /**
      * 获取unionId
+     *
      * @param code
      * @return
      */
-    public String getUnionId(String code){
+    public String getUnionId(String code) {
         JSONObject jsonObject = getAccessToken(code);
         String accessToken = jsonObject.getString("access_token");
         String openid = jsonObject.getString("openid");
@@ -137,9 +143,8 @@ public class WeixinService  extends WxOpenServiceImpl {
     /**
      * 通过openId获取用户信息(含是否订阅公众号)
      */
-    public JSONObject getUserInfoByOpenId(String openId){
+    public JSONObject getUserInfoByOpenId(String openId) {
         String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
-        logger.info("openId----: "+ openId);
         JSONObject result2 = JSONObject.parseObject(result1);
         String result3 = result2.getString("access_token");
         String pubkey = "1234567890123456";
@@ -147,14 +152,14 @@ public class WeixinService  extends WxOpenServiceImpl {
         String decode = AESWithJCEUtils.aesDecode(result3, pubkey, iv);
         String resutl = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + decode + "&openid=" + openId + "&lang=zh_CN");
         JSONObject jsonObject = JSONObject.parseObject(resutl);
-        logger.info("userInfo:"+ jsonObject.toString());
+        logger.info("userInfo:" + jsonObject.toString());
         return jsonObject;
     }
 
     /**
      * 通过accessToken刷新ticket
      */
-    public String getTicket(){
+    public String getTicket() {
         String result1 = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
         JSONObject result2 = JSONObject.parseObject(result1);
         String access_token = result2.getString("access_token");
@@ -166,49 +171,91 @@ public class WeixinService  extends WxOpenServiceImpl {
         return jsapi_ticket;
     }
 
-    public Map<String,String> getSign(String url){
+    public Map<String, String> getSign(String url) {
         String jsapiTicket = getTicket();
-        logger.info("jsapiTicket:"+ jsapiTicket);
-        Map<String,String> sign = Sign.sign(jsapiTicket,url);
-        sign.put("appId",appId);
+        logger.info("jsapiTicket:" + jsapiTicket);
+        Map<String, String> sign = Sign.sign(jsapiTicket, url);
+        sign.put("appId", appId);
         logger.info("sign:" + sign);
         return sign;
     }
 
     /**
      * 插入记录的
+     *
      * @param openId
      * @param subscribe
      */
-    @Transactional
-    public void insertRecord(String openId,Integer subscribe){
-        logger.info("subscribe："+ subscribe);
-        Record recordByOpenId = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
-                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-        if (subscribe == 0){
+    public void insertRecord(String openId, Integer subscribe) {
+        logger.info("subscribe：" + subscribe);
+        Record recordByOpenId = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId, openId)
+                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState, 1)));
+        if (subscribe == 0) {
             //未关注公众号
-            if (recordByOpenId == null){
+            if (recordByOpenId == null) {
                 logger.info("新粉丝第一次进入");
                 Record record = new Record();
                 record.setOpenId(openId);
                 record.setFan("新粉丝");
                 record.setCreateDateTime(new Date());
                 recordMapper.insert(record);
-            }else {
+            } else {
                 logger.info("游客访问过，但未关注");
             }
-        }else {
+        } else {
             //关注过公众号
-            if (recordByOpenId == null){
+            if (recordByOpenId == null) {
                 logger.info("老粉丝第一次进入");
                 Record record = new Record();
                 record.setOpenId(openId);
                 record.setFan("老粉丝");
                 record.setCreateDateTime(new Date());
                 recordMapper.insert(record);
-            }else {
+            } else {
                 logger.info("老粉丝访问过,已关注");
             }
         }
     }
+
+    public JSONObject autoLogin(String openId) {
+
+        String userInfo = "";
+        if (redisService.exists(openId)) {
+
+            userInfo = redisService.get(openId).toString();
+            JSONObject jsonObject = JSONObject.parseObject(userInfo);
+            Integer subscribe = jsonObject.getInteger("subscribe");
+            insertRecord(openId, subscribe);
+            return jsonObject;
+        }
+
+        String accessToken = fetchAccessToken();
+        userInfo = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + accessToken + "&openid=" + openId + "&lang=zh_CN");
+        redisService.set(openId, userInfo.toString());
+        JSONObject jsonObject = JSONObject.parseObject(userInfo);
+        Integer subscribe = jsonObject.getInteger("subscribe");
+        insertRecord(openId, subscribe);
+        return jsonObject;
+    }
+
+    private String fetchAccessToken() {
+
+        String access_token = "";
+        //从cache中获取
+        if (redisService.exists("access_token")) {
+            access_token = redisService.get("access_token").toString();
+            return access_token;
+        }
+        String accessTokenResult = HttpRequestUtils.sendGet("https://api.weq.me/wx/token.php?id=15969759463491&key=1234567890123456");
+        JSONObject accessTokenObject = JSONObject.parseObject(accessTokenResult);
+        String aesAccessToken = accessTokenObject.getString("access_token");
+        Long expiresIn = accessTokenObject.getLongValue("expires_in");
+        String pubkey = "1234567890123456";
+        String iv = "WJi7HTZQoh8eHjup";
+        String accessToken = AESWithJCEUtils.aesDecode(aesAccessToken, pubkey, iv);
+        redisService.set("access_token", access_token, expiresIn - 1000);
+        return accessToken;
+    }
+
+
 }
