@@ -2,7 +2,10 @@ package com.bsd.say.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.bsd.say.config.RedisProperies;
+import com.bsd.say.entities.Record;
+import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.service.WxOpenServiceDemo;
 import com.bsd.say.util.AESWithJCEUtils;
 import com.bsd.say.util.HttpRequestUtils;
@@ -17,10 +20,12 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.JedisPool;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +54,8 @@ public class WeixinService  extends WxOpenServiceImpl {
     private String getTicketUrl;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private RecordMapper recordMapper;
 
     private WxOpenMessageRouter wxOpenMessageRouter;
     Logger logger = LogUtils.getBussinessLogger();
@@ -166,5 +173,42 @@ public class WeixinService  extends WxOpenServiceImpl {
         sign.put("appId",appId);
         logger.info("sign:" + sign);
         return sign;
+    }
+
+    /**
+     * 插入记录的
+     * @param openId
+     * @param subscribe
+     */
+    @Transactional
+    public void insertRecord(String openId,Integer subscribe){
+        logger.info("subscribe："+ subscribe);
+        Record recordByOpenId = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,openId)
+                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+        if (subscribe == 0){
+            //未关注公众号
+            if (recordByOpenId == null){
+                logger.info("新粉丝第一次进入");
+                Record record = new Record();
+                record.setOpenId(openId);
+                record.setFan("新粉丝");
+                record.setCreateDateTime(new Date());
+                recordMapper.insert(record);
+            }else {
+                logger.info("游客访问过，但未关注");
+            }
+        }else {
+            //关注过公众号
+            if (recordByOpenId == null){
+                logger.info("老粉丝第一次进入");
+                Record record = new Record();
+                record.setOpenId(openId);
+                record.setFan("老粉丝");
+                record.setCreateDateTime(new Date());
+                recordMapper.insert(record);
+            }else {
+                logger.info("老粉丝访问过,已关注");
+            }
+        }
     }
 }

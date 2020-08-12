@@ -42,7 +42,7 @@ server:
 
 award:
   rule: 5
-  amount: 2
+  amount: 10
 
 wechat:
   aesKey: r4cbRuIfbbnTIgJoQE33vJACJuoioZ5pRAhumITsP8O
