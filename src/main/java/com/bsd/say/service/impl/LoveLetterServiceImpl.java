@@ -81,6 +81,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                 loveLetter.setLetterId(letterId);
                 loveLetter.setContent(content);
                 loveLetter.setSenderName(sender_name);
+                loveLetter.setOpenId(openId);
                 if (love_type!=null){
                     loveLetter.setLoveType(love_type);
                 }
@@ -130,35 +131,9 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             String openId = data.getString("openId");
 //            String code = data.getString("code");
             String letterId = data.getString("letterId");
-            String qrCode = data.getString("qrCode");
-            String postCode = data.getString("postCode");
-            String sourceName;
-            if (StringUtils.isNotEmpty(qrCode)){
-                //二维码编码
-                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
-                if (source == null){
-                    ajaxResult.setRetmsg("未找到二维码code的来源");
-                    ajaxResult.setRetcode(AjaxResult.FAILED);
-                    return ajaxResult;
-                }else {
-                    sourceName = source.getSourceName();
-                }
-            }else if (StringUtils.isNotEmpty(postCode)){
-                //海报编码
-                Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getPostCode,postCode)
-                        .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
-                if (source == null){
-                    ajaxResult.setRetmsg("未找到海报code的来源");
-                    ajaxResult.setRetcode(AjaxResult.FAILED);
-                    return ajaxResult;
-                }else {
-                    sourceName = source.getSourceName();
-                }
-            }else {
-                sourceName = "";
-            }
-
+//            String qrCode = data.getString("qrCode");
+//            String postCode = data.getString("postCode");
+            String sourceName = "";
             if (StringUtils.isBlank(letterId)){
                 ajaxResult.setRetmsg("LETTERID MISSING");
                 ajaxResult.setRetcode(AjaxResult.FAILED);
@@ -171,6 +146,10 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
                 }else {
+                    String createOpenId = loveLetter.getOpenId();
+                    Record createrRecord = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,createOpenId)
+                            .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
+                    sourceName = createrRecord.getSource();
                     int readTimes = loveLetter.getReadTimes();
                     loveLetter.setReadTimes(readTimes + 1);
                     loveLetter.setUpdateDateTime(new Date());
