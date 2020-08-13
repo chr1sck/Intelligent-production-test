@@ -217,19 +217,19 @@ public class WeixinService extends WxOpenServiceImpl {
 
     public JSONObject autoLogin(String openId) {
 
-        String userInfo = "";
-        if (redisService.exists(openId)) {
-
-            userInfo = redisService.get(openId).toString();
-            JSONObject jsonObject = JSONObject.parseObject(userInfo);
-            Integer subscribe = jsonObject.getInteger("subscribe");
-            insertRecord(openId, subscribe);
-            return jsonObject;
-        }
+//        String userInfo = "";
+//        if (redisService.exists(openId)) {
+//
+//            userInfo = redisService.get(openId).toString();
+//            JSONObject jsonObject = JSONObject.parseObject(userInfo);
+//            Integer subscribe = jsonObject.getInteger("subscribe");
+//            insertRecord(openId, subscribe);
+//            return jsonObject;
+//        }
 
         String accessToken = fetchAccessToken();
-        userInfo = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + accessToken + "&openid=" + openId + "&lang=zh_CN");
-        redisService.set(openId, userInfo.toString());
+        String userInfo = HttpRequestUtils.sendGet("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + accessToken + "&openid=" + openId + "&lang=zh_CN");
+//        redisService.set(openId, userInfo.toString());
         JSONObject jsonObject = JSONObject.parseObject(userInfo);
         Integer subscribe = jsonObject.getInteger("subscribe");
         insertRecord(openId, subscribe);
@@ -251,7 +251,8 @@ public class WeixinService extends WxOpenServiceImpl {
         String pubkey = "1234567890123456";
         String iv = "WJi7HTZQoh8eHjup";
         String accessToken = AESWithJCEUtils.aesDecode(aesAccessToken, pubkey, iv);
-        redisService.set("access_token", access_token, expiresIn - 1000);
+        logger.info("-----access token" + accessToken + "expire" + expiresIn);
+        redisService.set("access_token", accessToken, expiresIn - 1000);
         return accessToken;
     }
 

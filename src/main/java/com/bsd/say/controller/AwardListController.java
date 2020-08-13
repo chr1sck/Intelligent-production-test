@@ -3,6 +3,7 @@ package com.bsd.say.controller;
 import com.bsd.say.beans.AjaxRequest;
 import com.bsd.say.beans.AjaxResult;
 import com.bsd.say.entities.AwardList;
+import com.bsd.say.exception.AreadyAwardException;
 import com.bsd.say.service.AwardListService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("award-list")
 @CrossOrigin
-public class AwardListController extends BaseController<AwardListService, AwardList>{
+public class AwardListController extends BaseController<AwardListService, AwardList> {
     @Resource
     private AwardListService awardListService;
+
     @Override
     public AwardListService getBaseService() {
         return super.getBaseService();
@@ -40,7 +42,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
      */
     @RequestMapping(value = "/is-valid-lottery")
     @ResponseBody
-    public AjaxResult isValidLottery(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult isValidLottery(@RequestBody AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         try {
             ajaxResult = awardListService.isValidLottery(ajaxRequest);
@@ -54,10 +56,16 @@ public class AwardListController extends BaseController<AwardListService, AwardL
     }
 
     @RequestMapping("award")
-    public AjaxResult award(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult award(@RequestBody AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         try {
             ajaxResult = awardListService.award(ajaxRequest);
+        } catch (AreadyAwardException e) {
+
+            e.printStackTrace();
+            String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg(errMsg);
         } catch (Exception e) {
             e.printStackTrace();
             String errMsg = e.getMessage() != null ? e.getMessage() : "操作失败";
@@ -72,7 +80,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
      */
     @RequestMapping(value = "/save-award")
     @ResponseBody
-    public AjaxResult saveAward(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult saveAward(@RequestBody AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         ajaxResult = awardListService.saveAward(ajaxRequest);
         return ajaxResult;
@@ -83,7 +91,7 @@ public class AwardListController extends BaseController<AwardListService, AwardL
      */
     @RequestMapping(value = "/get-award-list")
     @ResponseBody
-    public AjaxResult getAwardList(@RequestBody AjaxRequest ajaxRequest){
+    public AjaxResult getAwardList(@RequestBody AjaxRequest ajaxRequest) {
         AjaxResult ajaxResult = new AjaxResult();
         try {
             ajaxResult = awardListService.getAwardList(ajaxRequest);

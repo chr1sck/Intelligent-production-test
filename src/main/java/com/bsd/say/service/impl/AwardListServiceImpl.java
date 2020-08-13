@@ -8,11 +8,13 @@ import com.bsd.say.entities.AwardList;
 import com.bsd.say.entities.Coupon;
 import com.bsd.say.entities.Record;
 import com.bsd.say.entities.Users;
+import com.bsd.say.exception.AreadyAwardException;
 import com.bsd.say.mapper.AwardListMapper;
 import com.bsd.say.mapper.CouponMapper;
 import com.bsd.say.mapper.RecordMapper;
 import com.bsd.say.mapper.UsersMapper;
 import com.bsd.say.service.AwardListService;
+import com.bsd.say.service.RedisService;
 import com.bsd.say.util.LogUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import java.util.List;
 @Service("awardListService")
 @Transactional
 public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, AwardList> implements AwardListService {
+
     @Value("${award.rule}")
     private Integer rule;
     @Value("${award.amount}")
@@ -39,6 +42,8 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
     protected AwardListMapper awardListMapper;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private RedisService redisService;
     @Resource
     private CouponMapper couponMapper;
     @Resource
@@ -60,28 +65,38 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
      * @return
      */
     @Override
-    public AjaxResult award(AjaxRequest ajaxRequest) {
+    public AjaxResult award(AjaxRequest ajaxRequest) throws AreadyAwardException {
 
-        synchronized (this) {
-            AjaxResult ajaxResult = new AjaxResult();
-            JSONObject data = ajaxRequest.getData();
-            if (data == null) {
+
+        AjaxResult ajaxResult = new AjaxResult();
+        JSONObject data = ajaxRequest.getData();
+        if (data == null) {
+            ajaxResult.setRetcode(AjaxResult.FAILED);
+            ajaxResult.setRetmsg("DATA MISSING");
+            return ajaxResult;
+        } else {
+            String openId = data.getString("openId");
+//                String code = data.getString("code");
+            if (StringUtils.isEmpty(openId)) {
                 ajaxResult.setRetcode(AjaxResult.FAILED);
-                ajaxResult.setRetmsg("DATA MISSING");
+                ajaxResult.setRetmsg("openId MISSING");
                 return ajaxResult;
             } else {
-                String openId = data.getString("openId");
-//                String code = data.getString("code");
-                if (StringUtils.isEmpty(openId)) {
-                    ajaxResult.setRetcode(AjaxResult.FAILED);
-                    ajaxResult.setRetmsg("openId MISSING");
-                    return ajaxResult;
-                } else {
-                    JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
-                    String unionId = userInfo.getString("unionid");
-                    logger.info("union_id:" + unionId);
-                    Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId, openId)
-                            .and(queryWrapper1 -> queryWrapper1.eq(Users::getState, 1)));
+                Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId, openId)
+                        .and(queryWrapper1 -> queryWrapper1.eq(Users::getState, 1)));
+
+//                if (redisService.exists("user-award-" + users.getId())) {
+//
+//                    AwardList userAWardList = userAWardList = awardListMapper.selectOne(Wrappers.<AwardList>lambdaQuery().eq(AwardList::getUserId, users.getId()));
+//                    if (null != userAWardList) {
+//
+//
+//                        redisService.set("user-award-" + users.getId(), userAWardList.toString());
+//                            throw new AreadyAwardException("您已经抽过奖了， 不要太贪心哦~~~");
+//                    }
+//                }
+
+//                synchronized (this) {
                     AwardList maxIdAward = awardListMapper.selectByMaxId();
                     Integer newAwardNumner = maxIdAward.getAwardNumber() + 1;
                     AwardList awardList = new AwardList();
@@ -89,9 +104,13 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                     awardList.setAwardNumber(newAwardNumner);
                     awardList.setCreateDateTime(new Date());
                     awardList.setUpdateDateTime(new Date());
+
+                    int awardNumber = newAwardNumner / rule;
                     //中大奖
                     if (newAwardNumner % rule == 0) {
-                        if (newAwardNumner > rule * amount) {
+
+                        if (newAwardNumner > rule * amount && !redisService.exists("award-" + (awardNumber))) {
+
                             logger.info("没一等奖了");
                             awardList.setAwardName("波司登优惠券");
                             awardList.setAwardType(2);
@@ -100,19 +119,29 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                             awardList.setAwardName("波司登羽绒服");
                             awardList.setAwardType(1);
                             ajaxResult.setRetmsg("恭喜中一等奖，羽绒服");
+                            redisService.remove("award-" + awardNumber);
                         }
                     } else {
                         awardList.setAwardName("波司登优惠券");
                         awardList.setAwardType(2);
                         ajaxResult.setRetmsg("恭喜中二等奖，优惠券");
                     }
-                    awardListMapper.insert(awardList);
+
+                    try{
+
+                        awardListMapper.insert(awardList);
+
+                    }catch (Exception e){
+                        ajaxResult.setRetmsg("恭喜中二等奖，优惠券");
+                    }
+                    redisService.set("user-award-" + users.getId(), awardList.toString());
                     ajaxResult.setData(awardList);
                 }
-            }
-            ajaxResult.setRetcode(AjaxResult.SUCCESS);
-            return ajaxResult;
+
+//            }
         }
+        ajaxResult.setRetcode(AjaxResult.SUCCESS);
+        return ajaxResult;
     }
 
     /**
@@ -313,6 +342,11 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
             }
         }
         return ajaxResult;
+    }
+
+    public static void main(String[] args) {
+
+        System.out.println(1 / 5);
     }
 
 }

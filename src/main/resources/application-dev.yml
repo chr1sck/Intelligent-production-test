@@ -17,6 +17,10 @@ spring:
     username: bsdloveh5
     password: L0ve#h5_Bsd202008+
     driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      minimum-idle: 20
+      maximum-pool-size: 50
+      connection-timeout: 30000
   #解决整合后报的一个错：<aused by: java.sql.SQLFeatureNotSupportedException: 这个 org.postgresql.jdbc.PgConnection.createClob() 方法尚未被实作。>
   jpa:
     properties:
@@ -42,8 +46,8 @@ server:
   port: 8082
 
 award:
-  rule: 5
-  amount: 10
+  rule: 30
+  amount: 100
 
 wechat:
   aesKey: r4cbRuIfbbnTIgJoQE33vJACJuoioZ5pRAhumITsP8O
