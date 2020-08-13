@@ -147,10 +147,10 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     return ajaxResult;
                 }else {
                     String createOpenId = loveLetter.getOpenId();
-                    Record createrRecord = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,createOpenId)
-                            .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
-                    if (createrRecord != null){
+                    if (createOpenId != null){
                         //说明是非微信端的
+                        Record createrRecord = recordMapper.selectOne(Wrappers.<Record>lambdaQuery().eq(Record::getOpenId,createOpenId)
+                                .and(queryWrapper1 -> queryWrapper1.eq(Record::getState,1)));
                         sourceName = createrRecord.getSource();
                     }
                     int readTimes = loveLetter.getReadTimes();
@@ -187,7 +187,6 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
                     record1.setCreateDateTime(new Date());
                     record1.setUpdateDateTime(new Date());
                     record1.setReceiveLetterTimes(1);
-                    record1.setSource(sourceName);
                     recordMapper.insert(record1);
                 }else {
                     Integer receiveLetterTimes = record.getReceiveLetterTimes();
