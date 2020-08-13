@@ -85,16 +85,16 @@ public class AwardListServiceImpl extends BaseServiceImpl<AwardListMapper, Award
                 Users users = usersMapper.selectOne(Wrappers.<Users>lambdaQuery().eq(Users::getOpenId, openId)
                         .and(queryWrapper1 -> queryWrapper1.eq(Users::getState, 1)));
 
-//                if (redisService.exists("user-award-" + users.getId())) {
-//
-//                    AwardList userAWardList = userAWardList = awardListMapper.selectOne(Wrappers.<AwardList>lambdaQuery().eq(AwardList::getUserId, users.getId()));
-//                    if (null != userAWardList) {
-//
-//
-//                        redisService.set("user-award-" + users.getId(), userAWardList.toString());
-//                            throw new AreadyAwardException("您已经抽过奖了， 不要太贪心哦~~~");
-//                    }
-//                }
+                if (redisService.exists("user-award-" + users.getId())) {
+
+                    AwardList userAWardList = userAWardList = awardListMapper.selectOne(Wrappers.<AwardList>lambdaQuery().eq(AwardList::getUserId, users.getId()));
+                    if (null != userAWardList) {
+
+
+                        redisService.set("user-award-" + users.getId(), userAWardList.toString());
+                        throw new AreadyAwardException("您已经抽过奖了， 不要太贪心哦~~~");
+                    }
+                }
 
 //                synchronized (this) {
                     AwardList maxIdAward = awardListMapper.selectByMaxId();
