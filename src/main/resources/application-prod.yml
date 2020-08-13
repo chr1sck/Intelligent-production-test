@@ -46,8 +46,8 @@ server:
   port: 8082
 
 award:
-  rule: 10
-  amount: 100
+  rule: 5000
+  amount: 10
 
 wechat:
   aesKey: r4cbRuIfbbnTIgJoQE33vJACJuoioZ5pRAhumITsP8O
