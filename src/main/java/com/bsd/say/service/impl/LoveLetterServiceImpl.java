@@ -94,6 +94,7 @@ public class LoveLetterServiceImpl extends BaseServiceImpl<LoveLetterMapper, Lov
             }
             if (StringUtils.isNotEmpty(openId)){
                 //来源于微信
+
                 JSONObject userInfo = weixinService.getUserInfoByOpenId(openId);
                 String unionId = userInfo.getString("unionid");
 //                String unionId = weixinService.getUnionId(code);
