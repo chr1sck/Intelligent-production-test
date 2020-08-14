@@ -68,6 +68,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                 Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getQrCode,qrCode)
                         .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
                 if (source == null){
+                    logger.info("错误的qrCode来源:"+qrCode);
                     ajaxResult.setRetmsg("未找到二维码code的来源");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
@@ -79,6 +80,7 @@ public class RecordServiceImpl extends BaseServiceImpl<RecordMapper,Record> impl
                 Source source = sourceMapper.selectOne(Wrappers.<Source>lambdaQuery().eq(Source::getPostCode,postCode)
                         .and(queryWrapper1 -> queryWrapper1.eq(Source::getState,1)));
                 if (source == null){
+                    logger.info("错误的postCode来源:"+postCode);
                     ajaxResult.setRetmsg("未找到海报code的来源");
                     ajaxResult.setRetcode(AjaxResult.FAILED);
                     return ajaxResult;
