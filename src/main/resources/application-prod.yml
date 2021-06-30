@@ -1,0 +1,70 @@
+# springboot整合postgres连接配制
+spring:
+  redis:
+    database: 0
+
+    host:
+    port: 7682
+    password:
+    jedis:
+      pool:
+        max-idle: 8
+        min-idle: 0
+        max-active: 8
+        max-wait: -1
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      minimum-idle: 20
+      maximum-pool-size: 50
+      connection-timeout: 30000
+  #解决整合后报的一个错：<aused by: java.sql.SQLFeatureNotSupportedException: 这个 org.postgresql.jdbc.PgConnection.createClob() 方法尚未被实作。>
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+#mybatis-plus整合，加了表前缀的全局配制，加了类中与表中驼峰的映射，不加会查不出数据，因无法做表与类字段映射
+mybatis-plus:
+  global-config:
+    db-config:
+      table-prefix: template.
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.bsd.say.entities
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.bsd.say.mapper: debug
+
+server:
+  port: 8082
+
+award:
+  rule: 5000
+  amount: 10
+
+wechat:
+  aesKey:
+  componentToken:
+  appId:
+  componentAppId:
+  componentAppSecret:
+  getComponentAccessTokenUrl: https://api.weixin.qq.com/cgi-bin/component/api_component_token
+  getAccessTokenUrl: https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=
+  getUnionIdUrl: https://api.weixin.qq.com/sns/userinfo?access_token=
+  getWxUserInfoUrl: https://api.weixin.qq.com/cgi-bin/user/info?access_token=
+  getTicketUrl: https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=
+
+
+bsd:
+  tokenkey:
+  sendSource:
+  verifySMSCodeUrl:
+  addCouponUrl:
+
